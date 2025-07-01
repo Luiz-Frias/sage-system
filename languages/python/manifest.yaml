@@ -1,0 +1,208 @@
+# Python Language Plugin Manifest
+# Defines Python-specific patterns, templates, and best practices
+
+version: "1.0.0"
+language: "python"
+supported_versions: ["3.10+"]
+
+project_types:
+  backend:
+    frameworks:
+      - name: "fastapi"
+        version: "0.100+"
+        starter_template: "templates/fastapi-starter/"
+        description: "Modern, fast, web framework for building APIs"
+      - name: "django"
+        version: "4.2+"
+        starter_template: "templates/django-starter/"
+        description: "High-level web framework with batteries included"
+      - name: "flask"
+        version: "3.0+"
+        starter_template: "templates/flask-starter/"
+        description: "Lightweight WSGI web application framework"
+        
+  data_processing:
+    frameworks:
+      - name: "pandas"
+        description: "Data manipulation and analysis"
+      - name: "polars"
+        description: "Fast DataFrame library"
+      - name: "dask"
+        description: "Parallel computing"
+        
+  ml_ai:
+    frameworks:
+      - name: "scikit-learn"
+        description: "Machine learning library"
+      - name: "pytorch"
+        description: "Deep learning framework"
+      - name: "tensorflow"
+        description: "End-to-end ML platform"
+
+code_standards:
+  formatting:
+    line_length: 88  # Black default
+    indent: 4
+    quotes: "double preferred"
+    
+  style_guide: "PEP 8"
+  type_checking: "strict"
+  
+  naming_conventions:
+    files: "snake_case"
+    classes: "PascalCase"
+    functions: "snake_case"
+    constants: "UPPER_SNAKE_CASE"
+    private: "_leading_underscore"
+    
+  docstring_format: "Google"
+
+common_patterns:
+  - pattern: "repository-pattern"
+    location: "patterns/repository-pattern.md"
+  - pattern: "async-await"
+    location: "patterns/async-patterns.md"
+  - pattern: "context-managers"
+    location: "patterns/context-managers.md"
+  - pattern: "decorators"
+    location: "patterns/decorators.md"
+  - pattern: "dataclasses"
+    location: "patterns/dataclasses.md"
+
+guardrails:
+  forbidden_practices:
+    - description: "No print statements in production"
+      detection: "\\bprint\\s*\\("
+      suggestion: "Use logging module"
+      
+    - description: "Avoid global variables"
+      detection: "^global\\s+"
+      suggestion: "Use function parameters or class attributes"
+      
+    - description: "No bare except clauses"
+      detection: "except\\s*:"
+      suggestion: "Catch specific exceptions"
+      
+    - description: "Avoid eval/exec"
+      detection: "\\b(eval|exec)\\s*\\("
+      suggestion: "Use safer alternatives"
+      
+  required_practices:
+    - description: "Type hints for all functions"
+      check: "has-type-hints"
+      
+    - description: "Docstrings for public functions"
+      check: "has-docstrings"
+      
+    - description: "Use pathlib for file operations"
+      check: "modern-path-handling"
+
+type_checking:
+  tools:
+    - name: "mypy"
+      config_template: "templates/configs/mypy.ini"
+      strictness: "strict"
+    - name: "pyright"
+      config_template: "templates/configs/pyrightconfig.json"
+    - name: "pydantic"
+      usage: "Runtime type validation"
+
+testing_frameworks:
+  unit:
+    - name: "pytest"
+      config_template: "templates/configs/pytest.ini"
+      plugins:
+        - "pytest-asyncio"
+        - "pytest-cov"
+        - "pytest-mock"
+    - name: "unittest"
+      usage: "Standard library option"
+      
+  integration:
+    - name: "httpx"
+      usage: "Async HTTP client for API testing"
+    - name: "pytest-django"
+      usage: "Django integration testing"
+      
+  e2e:
+    - name: "playwright"
+      usage: "Browser automation"
+    - name: "selenium"
+      usage: "Web testing"
+
+dependency_management:
+  package_managers:
+    modern: "uv"
+    traditional: "pip"
+    
+  virtual_environments:
+    - "venv"
+    - "poetry"
+    - "pipenv"
+    - "uv"
+    
+  lockfile_formats:
+    - "requirements.txt"
+    - "pyproject.toml"
+    - "poetry.lock"
+    - "Pipfile.lock"
+
+project_structure:
+  recommended: |
+    project_root/
+    ├── src/
+    │   └── project_name/
+    │       ├── __init__.py
+    │       ├── main.py
+    │       ├── models/
+    │       ├── services/
+    │       ├── api/
+    │       └── utils/
+    ├── tests/
+    │   ├── unit/
+    │   ├── integration/
+    │   └── e2e/
+    ├── pyproject.toml
+    ├── README.md
+    └── .python-version
+
+common_dependencies:
+  web:
+    - "uvicorn"
+    - "gunicorn"
+    - "httpx"
+    - "pydantic"
+    
+  data:
+    - "sqlalchemy"
+    - "alembic"
+    - "redis"
+    - "celery"
+    
+  utilities:
+    - "python-dotenv"
+    - "click"
+    - "rich"
+    - "loguru"
+    
+  development:
+    - "black"
+    - "ruff"
+    - "mypy"
+    - "pytest"
+    - "pre-commit"
+
+async_support:
+  libraries:
+    - "asyncio"
+    - "aiohttp"
+    - "httpx"
+    - "motor"  # Async MongoDB
+    - "aioredis"
+    - "databases"  # Async SQL toolkit
+    
+  best_practices:
+    - "Use async context managers"
+    - "Avoid blocking I/O in async functions"
+    - "Proper exception handling in tasks"
+    - "Use asyncio.gather for concurrent operations"

@@ -1,0 +1,430 @@
+# SAGE Agent Lifecycle Specification
+# Language-agnostic specification for agent states, transitions, and lifecycle management
+
+version: "1.0.0"
+specification_name: "Agent Lifecycle"
+specification_type: "core_engine"
+
+agent_states:
+  idle:
+    description: "Agent created but not yet assigned work"
+    characteristics:
+      - "Registered in agent registry"
+      - "Capabilities declared"
+      - "Awaiting task assignment"
+      - "Resource allocation pending"
+    allowed_transitions:
+      - "assigned"
+      - "terminated"
+    entry_conditions:
+      - "Agent initialization complete"
+      - "Communication channel established"
+    exit_conditions:
+      - "Task assignment received"
+      - "Shutdown command issued"
+    timeout: "30_minutes"
+    
+  assigned:
+    description: "Agent has received task assignment"
+    characteristics:
+      - "Task queue populated"
+      - "Dependencies identified"
+      - "Resources allocated"
+      - "Branch created"
+    allowed_transitions:
+      - "working"
+      - "blocked"
+      - "terminated"
+    entry_conditions:
+      - "Valid task assignment"
+      - "Resources available"
+      - "Dependencies resolvable"
+    exit_conditions:
+      - "Work commenced"
+      - "Blocking issue identified"
+    timeout: "15_minutes"
+    
+  working:
+    description: "Agent actively executing tasks"
+    characteristics:
+      - "Code generation in progress"
+      - "Regular status updates"
+      - "Resource consumption active"
+      - "Progress measurable"
+    allowed_transitions:
+      - "blocked"
+      - "completed"
+      - "failed"
+      - "paused"
+    entry_conditions:
+      - "All dependencies satisfied"
+      - "Resources acquired"
+      - "Workspace prepared"
+    exit_conditions:
+      - "Task completion"
+      - "Blocking issue encountered"
+      - "Critical error"
+    health_checks:
+      interval: "5_minutes"
+      indicators:
+        - "File modifications"
+        - "Status updates"
+        - "Resource activity"
+    
+  blocked:
+    description: "Agent unable to proceed due to dependencies"
+    characteristics:
+      - "Work halted"
+      - "Waiting for external input"
+      - "Resources may be released"
+      - "Active monitoring for unblock"
+    allowed_transitions:
+      - "working"
+      - "failed"
+      - "reassigned"
+    entry_conditions:
+      - "Unmet dependency identified"
+      - "Resource conflict detected"
+      - "External blocker reported"
+    exit_conditions:
+      - "Blocker resolved"
+      - "Timeout exceeded"
+      - "Task reassigned"
+    resolution_strategies:
+      - "Wait for dependency"
+      - "Request assistance"
+      - "Find alternative approach"
+      - "Escalate to orchestrator"
+    timeout: "45_minutes"
+    
+  completed:
+    description: "Agent successfully finished all assigned tasks"
+    characteristics:
+      - "All tasks executed"
+      - "Artifacts generated"
+      - "Tests passing"
+      - "Ready for handoff"
+    allowed_transitions:
+      - "idle"
+      - "terminated"
+    entry_conditions:
+      - "Task queue empty"
+      - "Success criteria met"
+      - "Quality gates passed"
+    exit_conditions:
+      - "New assignment received"
+      - "Wave completion"
+    artifacts:
+      - "Generated code"
+      - "Test results"
+      - "Documentation"
+      - "Decision log"
+    
+  failed:
+    description: "Agent encountered unrecoverable error"
+    characteristics:
+      - "Task execution stopped"
+      - "Error state logged"
+      - "Resources released"
+      - "Cleanup performed"
+    allowed_transitions:
+      - "terminated"
+      - "reassigned"
+    entry_conditions:
+      - "Critical error occurred"
+      - "Timeout exceeded"
+      - "Unresolvable conflict"
+    recovery_options:
+      - "Task reassignment"
+      - "Manual intervention"
+      - "Wave rollback"
+      - "Scope reduction"
+    
+  paused:
+    description: "Agent temporarily suspended"
+    characteristics:
+      - "State preserved"
+      - "Resources retained"
+      - "Work halted"
+      - "Resume capability"
+    allowed_transitions:
+      - "working"
+      - "terminated"
+    entry_conditions:
+      - "Pause command received"
+      - "System maintenance"
+      - "Resource pressure"
+    exit_conditions:
+      - "Resume command"
+      - "Timeout"
+    max_duration: "60_minutes"
+    
+  reassigned:
+    description: "Agent tasks redistributed to others"
+    characteristics:
+      - "Original task abandoned"
+      - "New agent taking over"
+      - "Context transferred"
+      - "History preserved"
+    allowed_transitions:
+      - "terminated"
+    handoff_protocol:
+      - "State snapshot"
+      - "Work summary"
+      - "Known issues"
+      - "Recommendations"
+    
+  terminated:
+    description: "Agent lifecycle ended"
+    characteristics:
+      - "No active tasks"
+      - "Resources released"
+      - "History archived"
+      - "Registry updated"
+    allowed_transitions: []
+    cleanup_tasks:
+      - "Commit pending work"
+      - "Update documentation"
+      - "Release locks"
+      - "Archive logs"
+
+state_transitions:
+  transition_rules:
+    validation:
+      description: "Ensure transition is allowed from current state"
+      checks:
+        - "State compatibility"
+        - "Preconditions met"
+        - "Resources available"
+        - "No conflicts"
+        
+    atomicity:
+      description: "Transitions must be atomic"
+      guarantees:
+        - "No partial transitions"
+        - "Rollback capability"
+        - "State consistency"
+        - "Audit trail"
+        
+    notification:
+      description: "Communicate state changes"
+      recipients:
+        - "Orchestrator"
+        - "Dependent agents"
+        - "Monitoring system"
+        - "Decision log"
+  
+  transition_triggers:
+    automatic:
+      - "Timeout expiration"
+      - "Task completion"
+      - "Error detection"
+      - "Resource exhaustion"
+      
+    commanded:
+      - "Orchestrator directive"
+      - "Manual intervention"
+      - "System events"
+      - "Policy enforcement"
+      
+    conditional:
+      - "Dependency satisfaction"
+      - "Resource availability"
+      - "Quality gate passage"
+      - "Health check results"
+
+lifecycle_events:
+  initialization:
+    sequence:
+      - "Agent instantiation"
+      - "Capability registration"
+      - "Communication setup"
+      - "State machine init"
+    outputs:
+      - "Agent ID"
+      - "Capability matrix"
+      - "Communication channel"
+      - "Initial state"
+      
+  task_assignment:
+    sequence:
+      - "Receive assignment"
+      - "Validate requirements"
+      - "Plan execution"
+      - "Acquire resources"
+    validations:
+      - "Capability match"
+      - "Resource availability"
+      - "Dependency feasibility"
+      - "Time constraints"
+      
+  execution:
+    monitoring:
+      - "Progress tracking"
+      - "Resource usage"
+      - "Quality metrics"
+      - "Dependency status"
+    checkpoints:
+      - "Milestone completion"
+      - "Integration points"
+      - "Test execution"
+      - "Artifact generation"
+      
+  completion:
+    verification:
+      - "Task checklist"
+      - "Quality standards"
+      - "Integration tests"
+      - "Documentation"
+    handoff:
+      - "Artifact packaging"
+      - "Knowledge transfer"
+      - "State cleanup"
+      - "Final report"
+      
+  termination:
+    graceful:
+      - "Complete current operation"
+      - "Save state"
+      - "Release resources"
+      - "Final status update"
+    forced:
+      - "Immediate halt"
+      - "State snapshot"
+      - "Resource cleanup"
+      - "Error logging"
+
+health_monitoring:
+  liveness_checks:
+    description: "Verify agent is responsive"
+    methods:
+      - "Heartbeat signal"
+      - "Status query"
+      - "Resource activity"
+      - "Log generation"
+    frequency: "5_minutes"
+    failure_threshold: "3_consecutive"
+    
+  progress_tracking:
+    description: "Monitor task advancement"
+    metrics:
+      - "Lines of code generated"
+      - "Files modified"
+      - "Tests written"
+      - "Commits made"
+    stall_detection:
+      - "No progress in 30 minutes"
+      - "Repeated errors"
+      - "Resource thrashing"
+      - "Infinite loops"
+      
+  resource_monitoring:
+    tracked_resources:
+      - "Memory usage"
+      - "CPU utilization"
+      - "Disk I/O"
+      - "Network activity"
+    thresholds:
+      - "Warning at 80%"
+      - "Critical at 95%"
+      - "Terminate at 100%"
+      
+  quality_monitoring:
+    continuous_checks:
+      - "Code compilation"
+      - "Linting compliance"
+      - "Test coverage"
+      - "Security scanning"
+    quality_gates:
+      - "No critical errors"
+      - "Minimum coverage met"
+      - "Standards compliance"
+      - "Performance targets"
+
+recovery_mechanisms:
+  state_persistence:
+    description: "Save agent state for recovery"
+    checkpoints:
+      - "Every state transition"
+      - "Every 30 minutes"
+      - "Before risky operations"
+    storage:
+      - "State snapshots"
+      - "Work progress"
+      - "Decision history"
+      - "Context data"
+      
+  failure_recovery:
+    strategies:
+      retry:
+        - "Transient errors"
+        - "Network timeouts"
+        - "Resource conflicts"
+        max_attempts: "3"
+        
+      rollback:
+        - "Corrupted state"
+        - "Invalid operations"
+        - "Breaking changes"
+        restore_point: "last_checkpoint"
+        
+      escalation:
+        - "Repeated failures"
+        - "Critical errors"
+        - "Unhandled exceptions"
+        target: "orchestrator"
+        
+  task_redistribution:
+    triggers:
+      - "Agent failure"
+      - "Timeout exceeded"
+      - "Resource exhaustion"
+    process:
+      - "Identify remaining work"
+      - "Find capable agents"
+      - "Transfer context"
+      - "Resume execution"
+    constraints:
+      - "Maintain dependencies"
+      - "Preserve progress"
+      - "Minimize disruption"
+      - "Ensure consistency"
+
+agent_coordination:
+  communication_protocol:
+    state_broadcasts:
+      - "State transitions"
+      - "Blocker notifications"
+      - "Completion announcements"
+      - "Resource requests"
+      
+    dependency_negotiation:
+      - "Requirement declaration"
+      - "Availability notification"
+      - "Priority resolution"
+      - "Handoff coordination"
+      
+  synchronization_points:
+    mandatory:
+      - "Wave boundaries"
+      - "Integration milestones"
+      - "Quality gates"
+      - "Deployment preparation"
+      
+    optional:
+      - "Feature completion"
+      - "Test execution"
+      - "Documentation updates"
+      - "Performance optimization"
+      
+  conflict_resolution:
+    detection:
+      - "Resource conflicts"
+      - "Dependency cycles"
+      - "State inconsistencies"
+      - "Timing conflicts"
+    resolution:
+      - "Priority-based"
+      - "First-come-first-served"
+      - "Orchestrator arbitration"
+      - "Collaborative negotiation"

@@ -1,0 +1,551 @@
+# SAGE Domain Plugin Interface Definition
+# Version: 1.0.0
+# This interface defines the contract that all domain plugins must implement
+
+interface:
+  name: IDomainPlugin
+  version: "1.0.0"
+  description: |
+    Defines the contract for domain-specific plugins that provide
+    business logic, requirements, patterns, and templates for specific
+    industries or business domains.
+
+# Plugin manifest structure that must be present in each domain plugin
+manifest:
+  required_fields:
+    name:
+      type: string
+      description: "Unique identifier for the domain plugin"
+      pattern: "^[a-z]+(-[a-z]+)*$"
+      example: "insurance"
+    
+    version:
+      type: string
+      description: "Semantic version of the plugin"
+      pattern: "^\\d+\\.\\d+\\.\\d+$"
+      example: "1.0.0"
+    
+    domain:
+      type: string
+      description: "Business domain this plugin supports"
+      enum: ["insurance", "ecommerce", "saas", "fintech", "healthcare", "education", "logistics", "manufacturing"]
+    
+    sub_domains:
+      type: array
+      description: "Specific sub-domains within the main domain"
+      items:
+        type: string
+      example: ["auto-insurance", "health-insurance", "life-insurance"]
+    
+    capabilities:
+      type: object
+      description: "Domain-specific capabilities provided"
+      properties:
+        requirements_templates:
+          type: boolean
+          description: "Provides domain-specific requirement templates"
+        
+        business_rules:
+          type: boolean
+          description: "Provides codified business rules"
+        
+        data_models:
+          type: boolean
+          description: "Provides domain data model templates"
+        
+        workflows:
+          type: boolean
+          description: "Provides business process workflows"
+        
+        compliance:
+          type: boolean
+          description: "Provides compliance and regulatory patterns"
+        
+        integrations:
+          type: boolean
+          description: "Provides integration patterns for domain systems"
+    
+    compliance_standards:
+      type: array
+      description: "Regulatory standards this plugin addresses"
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            example: "HIPAA"
+          version:
+            type: string
+          region:
+            type: string
+            enum: ["US", "EU", "UK", "APAC", "Global"]
+
+# Required methods that each domain plugin must implement
+required_methods:
+  initialize:
+    description: "Initialize the domain plugin with configuration"
+    parameters:
+      - name: config
+        type: object
+        description: "Configuration from domain-specific settings"
+    returns:
+      type: object
+      properties:
+        success:
+          type: boolean
+        domain_context:
+          type: object
+          description: "Domain-specific context data"
+  
+  get_requirements_template:
+    description: "Retrieve domain-specific requirement templates"
+    parameters:
+      - name: template_type
+        type: string
+        enum: ["functional", "non_functional", "compliance", "integration", "data"]
+      - name: sub_domain
+        type: string
+        description: "Specific sub-domain if applicable"
+      - name: context
+        type: object
+        description: "Additional context for template customization"
+    returns:
+      type: object
+      properties:
+        template:
+          type: object
+          properties:
+            sections:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  required:
+                    type: boolean
+                  fields:
+                    type: array
+            validation_rules:
+              type: array
+        metadata:
+          type: object
+  
+  get_business_rules:
+    description: "Retrieve codified business rules for the domain"
+    parameters:
+      - name: rule_category
+        type: string
+        description: "Category of business rules"
+      - name: context
+        type: object
+        description: "Business context for rule selection"
+    returns:
+      type: object
+      properties:
+        rules:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+              condition:
+                type: string
+                description: "Rule condition in domain-specific language"
+              action:
+                type: string
+                description: "Action to take when condition is met"
+              priority:
+                type: integer
+              tags:
+                type: array
+                items:
+                  type: string
+  
+  get_data_model:
+    description: "Retrieve domain-specific data models"
+    parameters:
+      - name: model_type
+        type: string
+        description: "Type of data model"
+      - name: include_relationships
+        type: boolean
+        default: true
+      - name: format
+        type: string
+        enum: ["json-schema", "sql", "nosql", "graph"]
+    returns:
+      type: object
+      properties:
+        entities:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              attributes:
+                type: array
+              relationships:
+                type: array
+              constraints:
+                type: array
+        schema:
+          type: object
+          description: "Complete schema in requested format"
+  
+  get_workflow_template:
+    description: "Retrieve business process workflow templates"
+    parameters:
+      - name: process_name
+        type: string
+        description: "Name of the business process"
+      - name: workflow_format
+        type: string
+        enum: ["bpmn", "state-machine", "flow-chart", "saga"]
+    returns:
+      type: object
+      properties:
+        workflow:
+          type: object
+          properties:
+            steps:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  type:
+                    type: string
+                  inputs:
+                    type: array
+                  outputs:
+                    type: array
+                  transitions:
+                    type: array
+            start_node:
+              type: string
+            end_nodes:
+              type: array
+              items:
+                type: string
+        implementation_hints:
+          type: object
+  
+  validate_compliance:
+    description: "Validate implementation against domain compliance rules"
+    parameters:
+      - name: artifact_type
+        type: string
+        enum: ["code", "data_model", "api", "workflow", "security"]
+      - name: artifact_content
+        type: object
+        description: "Content to validate"
+      - name: compliance_standards
+        type: array
+        description: "Standards to validate against"
+        items:
+          type: string
+    returns:
+      type: object
+      properties:
+        compliant:
+          type: boolean
+        violations:
+          type: array
+          items:
+            type: object
+            properties:
+              standard:
+                type: string
+              rule:
+                type: string
+              severity:
+                type: string
+                enum: ["critical", "high", "medium", "low"]
+              description:
+                type: string
+              remediation:
+                type: string
+        suggestions:
+          type: array
+  
+  get_integration_pattern:
+    description: "Get integration patterns for common domain systems"
+    parameters:
+      - name: system_type
+        type: string
+        description: "Type of system to integrate with"
+      - name: integration_style
+        type: string
+        enum: ["rest", "soap", "messaging", "event-driven", "batch", "streaming"]
+      - name: options
+        type: object
+    returns:
+      type: object
+      properties:
+        pattern:
+          type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            components:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  responsibility:
+                    type: string
+                  implementation:
+                    type: object
+        examples:
+          type: array
+          items:
+            type: object
+
+# Domain-specific patterns and templates
+patterns:
+  requirement_patterns:
+    description: "Patterns for capturing domain requirements"
+    structure:
+      functional:
+        description: "Business capability requirements"
+        required_sections:
+          - business_context
+          - user_stories
+          - acceptance_criteria
+          - business_rules
+      
+      non_functional:
+        description: "Quality attribute requirements"
+        required_sections:
+          - performance
+          - security
+          - compliance
+          - scalability
+      
+      data:
+        description: "Data-related requirements"
+        required_sections:
+          - data_entities
+          - data_flows
+          - data_quality
+          - data_governance
+  
+  architecture_patterns:
+    description: "Domain-specific architecture patterns"
+    categories:
+      - name: "microservices"
+        description: "Microservice patterns for the domain"
+      - name: "event_driven"
+        description: "Event-driven patterns"
+      - name: "data_pipeline"
+        description: "Data processing patterns"
+      - name: "integration"
+        description: "System integration patterns"
+
+# Hook system for domain plugin extensions
+hooks:
+  pre_requirement_generation:
+    description: "Called before generating requirements"
+    parameters:
+      - name: context
+        type: object
+    returns:
+      type: object
+      properties:
+        continue:
+          type: boolean
+        enriched_context:
+          type: object
+  
+  post_requirement_generation:
+    description: "Called after generating requirements"
+    parameters:
+      - name: requirements
+        type: object
+      - name: context
+        type: object
+    returns:
+      type: object
+      properties:
+        validated_requirements:
+          type: object
+        warnings:
+          type: array
+  
+  pre_model_generation:
+    description: "Called before generating data models"
+    parameters:
+      - name: model_spec
+        type: object
+    returns:
+      type: object
+      properties:
+        continue:
+          type: boolean
+        enhanced_spec:
+          type: object
+  
+  compliance_check:
+    description: "Called during compliance validation"
+    parameters:
+      - name: artifact
+        type: object
+      - name: standards
+        type: array
+    returns:
+      type: object
+      properties:
+        additional_checks:
+          type: array
+        risk_assessment:
+          type: object
+
+# Standard directory structure for domain plugins
+directory_structure:
+  required:
+    - path: "manifest.yaml"
+      description: "Plugin manifest file"
+    
+    - path: "requirements/"
+      description: "Requirement templates and patterns"
+      children:
+        - "templates/"
+        - "validation-rules/"
+        - "examples/"
+    
+    - path: "business-rules/"
+      description: "Codified business rules"
+      children:
+        - "rules.yaml"
+        - "decision-tables/"
+        - "rule-sets/"
+    
+    - path: "data-models/"
+      description: "Domain data models"
+      children:
+        - "entities/"
+        - "schemas/"
+        - "migrations/"
+    
+    - path: "workflows/"
+      description: "Business process workflows"
+      children:
+        - "processes/"
+        - "state-machines/"
+        - "orchestrations/"
+  
+  optional:
+    - path: "compliance/"
+      description: "Compliance and regulatory files"
+      children:
+        - "standards/"
+        - "checklists/"
+        - "audit-trails/"
+    
+    - path: "integrations/"
+      description: "Integration patterns and adapters"
+      children:
+        - "patterns/"
+        - "connectors/"
+        - "transformations/"
+    
+    - path: "documentation/"
+      description: "Domain documentation"
+      children:
+        - "glossary/"
+        - "best-practices/"
+        - "case-studies/"
+    
+    - path: "examples/"
+      description: "Example implementations"
+    
+    - path: "tests/"
+      description: "Domain plugin tests"
+
+# Domain knowledge base
+knowledge_base:
+  glossary:
+    description: "Domain-specific terminology"
+    type: object
+    required: true
+  
+  entities:
+    description: "Core domain entities and concepts"
+    type: array
+    required: true
+  
+  relationships:
+    description: "Entity relationships and dependencies"
+    type: array
+    required: true
+  
+  constraints:
+    description: "Business constraints and invariants"
+    type: array
+    required: true
+
+# Metadata requirements
+metadata:
+  author:
+    type: object
+    required: true
+    properties:
+      name:
+        type: string
+      organization:
+        type: string
+      email:
+        type: string
+        format: email
+  
+  license:
+    type: string
+    required: true
+  
+  industry_certifications:
+    type: array
+    description: "Relevant industry certifications"
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        issuer:
+          type: string
+        validity:
+          type: string
+  
+  supported_regions:
+    type: array
+    description: "Geographic regions supported"
+    items:
+      type: string
+  
+  version_history:
+    type: array
+    items:
+      type: object
+      properties:
+        version:
+          type: string
+        date:
+          type: string
+          format: date
+        changes:
+          type: array
+          items:
+            type: string

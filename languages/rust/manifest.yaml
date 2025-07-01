@@ -1,0 +1,210 @@
+# Rust Language Plugin Manifest
+# Defines Rust-specific patterns, templates, and best practices
+
+version: "1.0.0"
+language: "rust"
+supported_versions: ["1.70+"]
+
+project_types:
+  systems:
+    description: "Low-level systems programming"
+    common_crates:
+      - "tokio"
+      - "async-std"
+      - "crossbeam"
+      
+  web_backend:
+    frameworks:
+      - name: "axum"
+        version: "0.7+"
+        starter_template: "templates/axum-starter/"
+        description: "Ergonomic web framework built on Tokio"
+      - name: "actix-web"
+        version: "4+"
+        starter_template: "templates/actix-starter/"
+        description: "Powerful, pragmatic web framework"
+      - name: "rocket"
+        version: "0.5+"
+        starter_template: "templates/rocket-starter/"
+        description: "Web framework with focus on ease-of-use"
+        
+  cli_tools:
+    description: "Command-line applications"
+    common_crates:
+      - "clap"
+      - "structopt"
+      - "console"
+      - "indicatif"
+      
+  wasm:
+    description: "WebAssembly targets"
+    common_crates:
+      - "wasm-bindgen"
+      - "web-sys"
+      - "wasm-pack"
+
+code_standards:
+  formatting:
+    tool: "rustfmt"
+    line_length: 100
+    indent: 4
+    
+  linting:
+    tool: "clippy"
+    level: "pedantic"
+    
+  naming_conventions:
+    files: "snake_case"
+    modules: "snake_case"
+    types: "PascalCase"
+    functions: "snake_case"
+    constants: "UPPER_SNAKE_CASE"
+    lifetimes: "lowercase single letter"
+
+common_patterns:
+  - pattern: "error-handling"
+    location: "patterns/error-handling.md"
+    description: "Result<T, E> and error propagation"
+  - pattern: "builder-pattern"
+    location: "patterns/builder.md"
+  - pattern: "type-state"
+    location: "patterns/type-state.md"
+  - pattern: "interior-mutability"
+    location: "patterns/interior-mutability.md"
+  - pattern: "async-await"
+    location: "patterns/async.md"
+
+guardrails:
+  forbidden_practices:
+    - description: "Avoid unwrap() in production"
+      detection: "\\.unwrap\\(\\)"
+      suggestion: "Use expect() with message or proper error handling"
+      
+    - description: "No println! in libraries"
+      detection: "println!\\("
+      suggestion: "Use log crate or return errors"
+      
+    - description: "Avoid unsafe without documentation"
+      detection: "unsafe\\s*\\{"
+      suggestion: "Document safety invariants"
+      
+  required_practices:
+    - description: "Document public APIs"
+      check: "missing_docs"
+      
+    - description: "Handle all Results"
+      check: "unused_results"
+      
+    - description: "Derive common traits"
+      check: "missing_derive"
+
+memory_safety:
+  ownership_rules:
+    - "Each value has a single owner"
+    - "Owner drops value when out of scope"
+    - "Values can be borrowed immutably or mutably"
+    
+  common_issues:
+    - issue: "Lifetime errors"
+      solution: "Understand borrowing and lifetimes"
+    - issue: "Move semantics"
+      solution: "Use Clone or references"
+    - issue: "Thread safety"
+      solution: "Use Arc, Mutex, RwLock appropriately"
+
+testing:
+  unit_tests:
+    location: "Same file in #[cfg(test)] module"
+    example: |
+      #[cfg(test)]
+      mod tests {
+          use super::*;
+          
+          #[test]
+          fn test_function() {
+              assert_eq!(2 + 2, 4);
+          }
+      }
+      
+  integration_tests:
+    location: "tests/ directory"
+    
+  documentation_tests:
+    description: "Code examples in doc comments are tested"
+    
+  property_testing:
+    crate: "proptest"
+    usage: "Generate random test inputs"
+    
+  benchmarking:
+    crate: "criterion"
+    usage: "Statistical benchmarking"
+
+dependency_management:
+  package_manager: "cargo"
+  manifest: "Cargo.toml"
+  lockfile: "Cargo.lock"
+  
+  workspace_organization: |
+    workspace_root/
+    ├── Cargo.toml  # Workspace manifest
+    ├── crates/
+    │   ├── core/
+    │   ├── api/
+    │   └── cli/
+    └── target/     # Shared build directory
+
+common_dependencies:
+  async_runtime:
+    - "tokio"
+    - "async-std"
+    - "smol"
+    
+  serialization:
+    - "serde"
+    - "serde_json"
+    - "bincode"
+    - "postcard"
+    
+  error_handling:
+    - "anyhow"      # Application errors
+    - "thiserror"   # Library errors
+    
+  logging:
+    - "tracing"
+    - "env_logger"
+    - "log"
+    
+  web:
+    - "reqwest"     # HTTP client
+    - "sqlx"        # Async SQL
+    - "diesel"      # ORM
+    
+  utilities:
+    - "once_cell"
+    - "parking_lot"
+    - "dashmap"
+    - "rayon"       # Data parallelism
+
+performance_tips:
+  - "Use &str instead of String when possible"
+  - "Prefer iterators over manual loops"
+  - "Use Cow for potentially-owned data"
+  - "Consider zero-copy parsing with nom"
+  - "Profile before optimizing"
+  - "Use const generics for compile-time optimization"
+
+build_optimization:
+  release_profile: |
+    [profile.release]
+    lto = true
+    codegen-units = 1
+    panic = 'abort'
+    strip = true
+    
+  development_speed: |
+    [profile.dev]
+    opt-level = 0
+    
+    [profile.dev.package."*"]
+    opt-level = 3

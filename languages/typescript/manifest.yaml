@@ -1,0 +1,138 @@
+# TypeScript Language Plugin Manifest
+# Defines TypeScript-specific patterns, templates, and best practices
+
+version: "1.0.0"
+language: "typescript"
+supported_versions: ["5.0+"]
+
+project_types:
+  frontend:
+    frameworks:
+      - name: "react"
+        version: "18+"
+        starter_template: "templates/react-starter/"
+      - name: "vue"
+        version: "3+"
+        starter_template: "templates/vue-starter/"
+      - name: "solid"
+        version: "1.8+"
+        starter_template: "templates/solid-starter/"
+        
+  backend:
+    frameworks:
+      - name: "express"
+        version: "4+"
+        starter_template: "templates/express-starter/"
+      - name: "fastify"
+        version: "4+"
+        starter_template: "templates/fastify-starter/"
+      - name: "nestjs"
+        version: "10+"
+        starter_template: "templates/nestjs-starter/"
+
+code_standards:
+  formatting:
+    indent: 2
+    quotes: "single"
+    semicolons: true
+    line_length: 120
+    
+  naming_conventions:
+    files: "kebab-case"
+    components: "PascalCase"
+    functions: "camelCase"
+    constants: "UPPER_SNAKE_CASE"
+    interfaces: "PascalCase with 'I' prefix optional"
+    
+  type_safety:
+    strict: true
+    no_any: true
+    no_implicit_any: true
+    strict_null_checks: true
+
+common_patterns:
+  - pattern: "dependency-injection"
+    location: "patterns/dependency-injection.md"
+  - pattern: "error-handling"
+    location: "patterns/error-handling.md"
+  - pattern: "async-patterns"
+    location: "patterns/async-patterns.md"
+  - pattern: "state-management"
+    location: "patterns/state-management.md"
+
+guardrails:
+  forbidden_practices:
+    - description: "Never use 'any' type"
+      detection: "any\\s*[;,)]"
+      suggestion: "Use specific types or 'unknown'"
+      
+    - description: "Avoid console.log in production"
+      detection: "console\\.(log|debug|info)"
+      suggestion: "Use proper logging library"
+      
+    - description: "No var declarations"
+      detection: "\\bvar\\s+"
+      suggestion: "Use 'const' or 'let'"
+      
+  required_practices:
+    - description: "All functions must have return types"
+      check: "explicit-return-types"
+      
+    - description: "Error boundaries for React components"
+      check: "react-error-boundaries"
+      
+    - description: "Proper error handling for async functions"
+      check: "async-try-catch"
+
+testing_frameworks:
+  unit:
+    - name: "jest"
+      config_template: "templates/configs/jest.config.js"
+    - name: "vitest"
+      config_template: "templates/configs/vitest.config.ts"
+      
+  integration:
+    - name: "supertest"
+      usage: "API endpoint testing"
+      
+  e2e:
+    - name: "playwright"
+      config_template: "templates/configs/playwright.config.ts"
+    - name: "cypress"
+      config_template: "templates/configs/cypress.config.ts"
+
+dependency_management:
+  package_manager: "npm"
+  lockfile: "package-lock.json"
+  recommended_tools:
+    - "npm-check-updates"
+    - "depcheck"
+    - "bundlephobia"
+
+build_tools:
+  bundlers:
+    - name: "vite"
+      use_case: "Modern frontend apps"
+    - name: "webpack"
+      use_case: "Complex configurations"
+    - name: "esbuild"
+      use_case: "Fast builds"
+    - name: "rollup"
+      use_case: "Library bundling"
+      
+  transpilers:
+    primary: "tsc"
+    alternatives: ["swc", "esbuild"]
+
+common_dependencies:
+  utilities:
+    - "lodash-es"
+    - "date-fns"
+    - "zod"
+    
+  development:
+    - "@types/node"
+    - "typescript"
+    - "eslint"
+    - "prettier"
+    - "ts-node"

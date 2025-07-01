@@ -1,0 +1,336 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "description": "Library of discovered and predefined patterns for SAGE system",
+  "lastUpdated": "2025-07-01T00:00:00Z",
+  "categories": {
+    "design_patterns": {
+      "creational": [
+        {
+          "id": "pattern-singleton",
+          "name": "Singleton Pattern",
+          "description": "Ensures a class has only one instance and provides global access",
+          "intent": "Control object creation and ensure single instance",
+          "applicability": [
+            "Database connections",
+            "Logger instances",
+            "Configuration managers",
+            "Thread pools"
+          ],
+          "structure": {
+            "participants": ["Singleton"],
+            "relationships": ["Self-referential"]
+          },
+          "implementation": {
+            "python": {
+              "code_template": "class Singleton:\n    _instance = None\n    \n    def __new__(cls):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance",
+              "thread_safe": true
+            },
+            "javascript": {
+              "code_template": "class Singleton {\n  constructor() {\n    if (!Singleton.instance) {\n      Singleton.instance = this;\n    }\n    return Singleton.instance;\n  }\n}",
+              "es6_module": "const instance = new Singleton();\nObject.freeze(instance);\nexport default instance;"
+            }
+          },
+          "consequences": {
+            "benefits": ["Controlled access", "Reduced namespace pollution", "Lazy initialization"],
+            "liabilities": ["Global state", "Testing difficulties", "Violation of single responsibility"]
+          },
+          "related_patterns": ["Factory Method", "Abstract Factory"]
+        },
+        {
+          "id": "pattern-factory",
+          "name": "Factory Method Pattern",
+          "description": "Define interface for creating objects, let subclasses decide which class to instantiate",
+          "intent": "Decouple object creation from usage",
+          "applicability": [
+            "Product families",
+            "Complex object creation",
+            "Runtime type determination"
+          ],
+          "structure": {
+            "participants": ["Creator", "ConcreteCreator", "Product", "ConcreteProduct"],
+            "relationships": ["Inheritance", "Creation"]
+          },
+          "implementation": {
+            "python": {
+              "code_template": "from abc import ABC, abstractmethod\n\nclass Creator(ABC):\n    @abstractmethod\n    def factory_method(self):\n        pass\n    \n    def operation(self):\n        product = self.factory_method()\n        return product.operation()",
+              "type_hints": true
+            }
+          }
+        },
+        {
+          "id": "pattern-builder",
+          "name": "Builder Pattern",
+          "description": "Separate construction of complex objects from representation",
+          "intent": "Construct complex objects step by step",
+          "applicability": [
+            "Complex object construction",
+            "Multiple representations",
+            "Step-by-step construction"
+          ],
+          "structure": {
+            "participants": ["Builder", "ConcreteBuilder", "Director", "Product"],
+            "relationships": ["Aggregation", "Creation"]
+          }
+        }
+      ],
+      "structural": [
+        {
+          "id": "pattern-adapter",
+          "name": "Adapter Pattern",
+          "description": "Convert interface of a class into another interface clients expect",
+          "intent": "Allow incompatible interfaces to work together",
+          "applicability": [
+            "Third-party library integration",
+            "Legacy code adaptation",
+            "Multiple data sources"
+          ],
+          "structure": {
+            "participants": ["Target", "Adapter", "Adaptee", "Client"],
+            "relationships": ["Inheritance", "Composition"]
+          },
+          "implementation": {
+            "python": {
+              "code_template": "class Target:\n    def request(self):\n        pass\n\nclass Adapter(Target):\n    def __init__(self, adaptee):\n        self.adaptee = adaptee\n    \n    def request(self):\n        return self.adaptee.specific_request()"
+            }
+          },
+          "real_world_examples": [
+            "Database adapters",
+            "Payment gateway integrations",
+            "File format converters"
+          ]
+        },
+        {
+          "id": "pattern-decorator",
+          "name": "Decorator Pattern",
+          "description": "Attach additional responsibilities to objects dynamically",
+          "intent": "Add new functionality without altering structure",
+          "applicability": [
+            "Adding responsibilities dynamically",
+            "Withdrawable functionality",
+            "Multiple independent extensions"
+          ]
+        }
+      ],
+      "behavioral": [
+        {
+          "id": "pattern-observer",
+          "name": "Observer Pattern",
+          "description": "Define one-to-many dependency between objects",
+          "intent": "Notify multiple objects about state changes",
+          "applicability": [
+            "Event systems",
+            "Model-View architectures",
+            "Distributed event handling"
+          ],
+          "structure": {
+            "participants": ["Subject", "Observer", "ConcreteSubject", "ConcreteObserver"],
+            "relationships": ["Association", "Notification"]
+          },
+          "implementation": {
+            "python": {
+              "code_template": "class Subject:\n    def __init__(self):\n        self._observers = []\n    \n    def attach(self, observer):\n        self._observers.append(observer)\n    \n    def notify(self):\n        for observer in self._observers:\n            observer.update(self)"
+            }
+          }
+        },
+        {
+          "id": "pattern-strategy",
+          "name": "Strategy Pattern",
+          "description": "Define family of algorithms, encapsulate each one, make them interchangeable",
+          "intent": "Allow algorithm selection at runtime",
+          "applicability": [
+            "Multiple algorithms for task",
+            "Algorithm variations",
+            "Eliminate conditional statements"
+          ]
+        }
+      ]
+    },
+    "architectural_patterns": {
+      "layered": {
+        "id": "arch-layered",
+        "name": "Layered Architecture",
+        "description": "Organize system into hierarchical layers",
+        "layers": ["Presentation", "Business Logic", "Data Access", "Database"],
+        "principles": ["Separation of concerns", "Dependency inversion", "Layer isolation"],
+        "benefits": ["Maintainability", "Testability", "Reusability"],
+        "drawbacks": ["Performance overhead", "Complexity for simple apps"]
+      },
+      "microservices": {
+        "id": "arch-microservices",
+        "name": "Microservices Architecture",
+        "description": "Application as suite of small, independently deployable services",
+        "characteristics": [
+          "Service autonomy",
+          "Decentralized governance",
+          "Failure isolation",
+          "Polyglot persistence"
+        ],
+        "patterns": [
+          "API Gateway",
+          "Service Discovery",
+          "Circuit Breaker",
+          "Event Sourcing"
+        ]
+      },
+      "event_driven": {
+        "id": "arch-event-driven",
+        "name": "Event-Driven Architecture",
+        "description": "Components communicate through events",
+        "components": ["Event Producers", "Event Routers", "Event Consumers"],
+        "patterns": ["Publish-Subscribe", "Event Sourcing", "CQRS"]
+      }
+    },
+    "refactoring_patterns": {
+      "code_smells": [
+        {
+          "id": "smell-long-method",
+          "name": "Long Method",
+          "description": "Method that has grown too large",
+          "indicators": ["> 20 lines", "Multiple responsibilities", "Deep nesting"],
+          "refactorings": ["Extract Method", "Replace Temp with Query", "Decompose Conditional"]
+        },
+        {
+          "id": "smell-duplicate-code",
+          "name": "Duplicate Code",
+          "description": "Same code structure in multiple places",
+          "indicators": ["Copy-paste code", "Similar algorithms", "Repeated expressions"],
+          "refactorings": ["Extract Method", "Pull Up Method", "Form Template Method"]
+        },
+        {
+          "id": "smell-large-class",
+          "name": "Large Class",
+          "description": "Class trying to do too much",
+          "indicators": ["> 200 lines", "Many instance variables", "Many methods"],
+          "refactorings": ["Extract Class", "Extract Subclass", "Extract Interface"]
+        }
+      ],
+      "refactoring_techniques": [
+        {
+          "id": "refactor-extract-method",
+          "name": "Extract Method",
+          "description": "Turn fragment of code into method with descriptive name",
+          "motivation": "Improve readability and reusability",
+          "mechanics": [
+            "Create new method with descriptive name",
+            "Copy extracted code to new method",
+            "Identify and pass parameters",
+            "Replace original code with method call"
+          ]
+        },
+        {
+          "id": "refactor-rename",
+          "name": "Rename",
+          "description": "Change name to better reveal purpose",
+          "targets": ["Method", "Variable", "Class", "Package"],
+          "principles": ["Reveal intention", "Use domain language", "Be consistent"]
+        }
+      ]
+    },
+    "performance_patterns": {
+      "caching": [
+        {
+          "id": "perf-memoization",
+          "name": "Memoization",
+          "description": "Cache results of expensive function calls",
+          "use_cases": ["Recursive algorithms", "API calls", "Database queries"],
+          "implementation": {
+            "python": "from functools import lru_cache\n\n@lru_cache(maxsize=128)\ndef expensive_function(param):\n    # Expensive computation\n    return result"
+          }
+        },
+        {
+          "id": "perf-lazy-loading",
+          "name": "Lazy Loading",
+          "description": "Defer initialization until needed",
+          "benefits": ["Reduced startup time", "Memory efficiency", "Better responsiveness"]
+        }
+      ],
+      "concurrency": [
+        {
+          "id": "perf-thread-pool",
+          "name": "Thread Pool",
+          "description": "Reuse threads for multiple tasks",
+          "benefits": ["Reduced thread creation overhead", "Resource limiting", "Better scalability"]
+        }
+      ]
+    },
+    "security_patterns": {
+      "authentication": [
+        {
+          "id": "sec-jwt",
+          "name": "JWT Authentication",
+          "description": "Stateless authentication using JSON Web Tokens",
+          "components": ["Header", "Payload", "Signature"],
+          "best_practices": [
+            "Short expiration times",
+            "Refresh token rotation",
+            "Secure storage",
+            "HTTPS only"
+          ]
+        },
+        {
+          "id": "sec-oauth2",
+          "name": "OAuth 2.0",
+          "description": "Authorization framework for third-party access",
+          "flows": ["Authorization Code", "Implicit", "Client Credentials", "Device Code"]
+        }
+      ],
+      "data_protection": [
+        {
+          "id": "sec-encryption-at-rest",
+          "name": "Encryption at Rest",
+          "description": "Encrypt data when stored",
+          "methods": ["File-level", "Database-level", "Application-level"],
+          "algorithms": ["AES-256", "RSA", "ChaCha20"]
+        }
+      ]
+    }
+  },
+  "pattern_relationships": {
+    "complementary": [
+      {
+        "patterns": ["Factory Method", "Abstract Factory"],
+        "relationship": "Abstract Factory uses Factory Methods"
+      },
+      {
+        "patterns": ["Strategy", "Factory Method"],
+        "relationship": "Factory can create Strategy objects"
+      }
+    ],
+    "alternative": [
+      {
+        "patterns": ["Strategy", "State"],
+        "criteria": "Use State when behavior depends on object state"
+      }
+    ]
+  },
+  "pattern_detection_rules": {
+    "singleton": {
+      "indicators": [
+        "Private constructor",
+        "Static instance variable",
+        "Static access method",
+        "Thread synchronization"
+      ],
+      "confidence_threshold": 0.8
+    },
+    "factory": {
+      "indicators": [
+        "Abstract creation method",
+        "Multiple concrete creators",
+        "Product hierarchy",
+        "Creation delegation"
+      ],
+      "confidence_threshold": 0.75
+    }
+  },
+  "usage_statistics": {
+    "most_used": ["Singleton", "Factory Method", "Observer", "Adapter", "Strategy"],
+    "trending": ["Microservices", "Event Sourcing", "CQRS", "Serverless"],
+    "context_specific": {
+      "web_development": ["MVC", "REST", "GraphQL", "Websockets"],
+      "data_engineering": ["ETL", "Lambda Architecture", "Kappa Architecture"],
+      "machine_learning": ["Pipeline", "Feature Store", "Model Registry"]
+    }
+  }
+}

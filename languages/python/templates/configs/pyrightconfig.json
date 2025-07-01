@@ -1,0 +1,127 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/pyright/master/packages/vscode-pyright/schemas/pyrightconfig.schema.json",
+  
+  "root": ".",
+  "include": [
+    "app",
+    "tests",
+    "scripts"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    "**/node_modules",
+    "**/.venv",
+    "**/venv",
+    "**/.env",
+    "**/env",
+    "**/build",
+    "**/dist",
+    "**/.git",
+    "**/htmlcov",
+    "**/.mypy_cache",
+    "**/.pytest_cache",
+    "**/.coverage",
+    "**/alembic/versions"
+  ],
+  
+  "defineConstant": {
+    "DEBUG": false
+  },
+  
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Linux",
+  
+  "typeCheckingMode": "strict",
+  
+  "strictListInference": true,
+  "strictDictionaryInference": true,
+  "strictSetInference": true,
+  
+  "reportMissingImports": "error",
+  "reportMissingTypeStubs": "warning",
+  "reportMissingTypeArgument": "error",
+  "reportIncompatibleMethodOverride": "error",
+  "reportIncompatibleVariableOverride": "error",
+  "reportInconsistentConstructor": "error",
+  
+  "reportAssertAlwaysTrue": "error",
+  "reportConstantRedefinition": "error",
+  "reportDeprecated": "warning",
+  "reportDuplicateImport": "error",
+  "reportFunctionMemberAccess": "error",
+  "reportGeneralTypeIssues": "error",
+  "reportIncompleteStub": "warning",
+  "reportInvalidStringEscapeSequence": "error",
+  "reportInvalidStubStatement": "error",
+  "reportInvalidTypeVarUse": "error",
+  "reportMatchNotExhaustive": "error",
+  "reportMissingParameterType": "error",
+  "reportMissingTypeArgument": "error",
+  "reportOverlappingOverload": "error",
+  "reportPrivateImportUsage": "error",
+  "reportPrivateUsage": "error",
+  "reportTypeCommentUsage": "error",
+  "reportTypedDictNotRequiredAccess": "error",
+  "reportUnboundVariable": "error",
+  "reportUndefinedVariable": "error",
+  "reportUnknownArgumentType": "error",
+  "reportUnknownLambdaType": "error",
+  "reportUnknownMemberType": "error",
+  "reportUnknownParameterType": "error",
+  "reportUnknownVariableType": "error",
+  "reportUnnecessaryCast": "warning",
+  "reportUnnecessaryComparison": "warning",
+  "reportUnnecessaryContains": "warning",
+  "reportUnnecessaryIsInstance": "warning",
+  "reportUnnecessaryTypeIgnoreComment": "warning",
+  "reportUnsupportedDunderAll": "error",
+  "reportUntypedBaseClass": "error",
+  "reportUntypedClassDecorator": "error",
+  "reportUntypedFunctionDecorator": "error",
+  "reportUntypedNamedTuple": "error",
+  "reportUnusedClass": "warning",
+  "reportUnusedCoroutine": "error",
+  "reportUnusedExpression": "warning",
+  "reportUnusedFunction": "warning",
+  "reportUnusedImport": "warning",
+  "reportUnusedVariable": "warning",
+  "reportWildcardImportFromLibrary": "error",
+  
+  "reportCallInDefaultInitializer": "error",
+  "reportImplicitOverride": "warning",
+  "reportImplicitStringConcatenation": "warning",
+  "reportImportCycles": "error",
+  "reportIncompatibleMethodOverride": "error",
+  "reportIncompatibleVariableOverride": "error",
+  "reportInconsistentConstructor": "error",
+  "reportInvalidTypeForm": "error",
+  "reportMissingModuleSource": "warning",
+  "reportMissingSuperCall": "warning",
+  "reportPropertyTypeMismatch": "error",
+  "reportSelfClsParameterName": "error",
+  "reportShadowedImports": "error",
+  "reportUninitializedInstanceVariable": "error",
+  "reportUnnecessaryTypeIgnoreComment": "warning",
+  "reportUnusedCallResult": "warning",
+  
+  "venvPath": ".",
+  "venv": "venv",
+  
+  "executionEnvironments": [
+    {
+      "root": "app",
+      "pythonVersion": "3.11",
+      "extraPaths": [
+        "app"
+      ]
+    },
+    {
+      "root": "tests",
+      "pythonVersion": "3.11",
+      "extraPaths": [
+        "app",
+        "tests"
+      ]
+    }
+  ]
+}

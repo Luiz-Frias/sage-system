@@ -1,0 +1,1753 @@
+openapi: 3.1.0
+info:
+  title: P&C Insurance Policy Decision System API
+  description: |
+    Comprehensive REST API for Property & Casualty insurance policy lifecycle management,
+    including quotes, underwriting, policy management, claims processing, and rating calculations.
+  version: 1.0.0
+  contact:
+    name: Insurance API Support
+    email: api-support@insurance.example.com
+  license:
+    name: Proprietary
+    url: https://insurance.example.com/api-license
+
+servers:
+  - url: https://api.insurance.example.com/v1
+    description: Production server
+  - url: https://api-staging.insurance.example.com/v1
+    description: Staging server
+  - url: http://localhost:8080/v1
+    description: Development server
+
+security:
+  - bearerAuth: []
+  - apiKey: []
+
+tags:
+  - name: Policy
+    description: Policy lifecycle operations (quote, bind, endorse, renew, cancel)
+  - name: Underwriting
+    description: Risk assessment and underwriting decisions
+  - name: Claims
+    description: Claims processing from FNOL to payment
+  - name: Rating
+    description: Premium calculations and discount applications
+  - name: Async Jobs
+    description: Long-running asynchronous operations
+
+paths:
+  # Policy Endpoints
+  /policies/quote:
+    post:
+      tags:
+        - Policy
+      summary: Generate insurance quote
+      description: Creates a new quote based on risk information
+      operationId: createQuote
+      x-rate-limit:
+        requests: 100
+        window: 60s
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteRequest'
+      responses:
+        '201':
+          description: Quote created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /policies/quote/{quoteId}:
+    get:
+      tags:
+        - Policy
+      summary: Retrieve quote details
+      operationId: getQuote
+      parameters:
+        - $ref: '#/components/parameters/QuoteId'
+      responses:
+        '200':
+          description: Quote details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /policies/bind:
+    post:
+      tags:
+        - Policy
+      summary: Bind policy from quote
+      description: Converts an approved quote into an active policy
+      operationId: bindPolicy
+      x-async: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BindRequest'
+      responses:
+        '202':
+          description: Bind request accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Conflict - Quote already bound or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /policies/{policyNumber}:
+    get:
+      tags:
+        - Policy
+      summary: Get policy details
+      operationId: getPolicy
+      parameters:
+        - $ref: '#/components/parameters/PolicyNumber'
+      responses:
+        '200':
+          description: Policy details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /policies/{policyNumber}/endorse:
+    post:
+      tags:
+        - Policy
+      summary: Create policy endorsement
+      description: Initiates an endorsement to modify an active policy
+      operationId: endorsePolicy
+      x-async: true
+      parameters:
+        - $ref: '#/components/parameters/PolicyNumber'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EndorsementRequest'
+      responses:
+        '202':
+          description: Endorsement request accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /policies/{policyNumber}/renew:
+    post:
+      tags:
+        - Policy
+      summary: Initiate policy renewal
+      description: Creates a renewal quote for an expiring policy
+      operationId: renewPolicy
+      x-async: true
+      parameters:
+        - $ref: '#/components/parameters/PolicyNumber'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenewalRequest'
+      responses:
+        '202':
+          description: Renewal request accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /policies/{policyNumber}/cancel:
+    post:
+      tags:
+        - Policy
+      summary: Cancel policy
+      description: Initiates policy cancellation
+      operationId: cancelPolicy
+      x-async: true
+      parameters:
+        - $ref: '#/components/parameters/PolicyNumber'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancellationRequest'
+      responses:
+        '202':
+          description: Cancellation request accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Underwriting Endpoints
+  /underwriting/assess:
+    post:
+      tags:
+        - Underwriting
+      summary: Perform risk assessment
+      description: Evaluates risk and returns underwriting decision
+      operationId: assessRisk
+      x-rate-limit:
+        requests: 50
+        window: 60s
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskAssessmentRequest'
+      responses:
+        '200':
+          description: Risk assessment completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiskAssessmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /underwriting/price:
+    post:
+      tags:
+        - Underwriting
+      summary: Calculate risk-based pricing
+      description: Determines premium based on underwriting factors
+      operationId: calculatePricing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PricingRequest'
+      responses:
+        '200':
+          description: Pricing calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PricingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /underwriting/decision/{assessmentId}:
+    get:
+      tags:
+        - Underwriting
+      summary: Get underwriting decision details
+      operationId: getUnderwritingDecision
+      parameters:
+        - name: assessmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Underwriting decision retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnderwritingDecision'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Claims Endpoints
+  /claims/fnol:
+    post:
+      tags:
+        - Claims
+      summary: Submit First Notice of Loss
+      description: Initiates a new insurance claim
+      operationId: submitFNOL
+      x-async: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FNOLRequest'
+      responses:
+        '202':
+          description: FNOL accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /claims/{claimNumber}:
+    get:
+      tags:
+        - Claims
+      summary: Get claim details
+      operationId: getClaim
+      parameters:
+        - $ref: '#/components/parameters/ClaimNumber'
+      responses:
+        '200':
+          description: Claim details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /claims/{claimNumber}/adjudicate:
+    post:
+      tags:
+        - Claims
+      summary: Submit claim adjudication decision
+      description: Records adjuster's decision on claim
+      operationId: adjudicateClaim
+      x-async: true
+      parameters:
+        - $ref: '#/components/parameters/ClaimNumber'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjudicationRequest'
+      responses:
+        '202':
+          description: Adjudication accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Claim already adjudicated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /claims/{claimNumber}/payment:
+    post:
+      tags:
+        - Claims
+      summary: Process claim payment
+      description: Initiates payment for approved claim
+      operationId: processClaimPayment
+      x-async: true
+      parameters:
+        - $ref: '#/components/parameters/ClaimNumber'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '202':
+          description: Payment request accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Payment already processed or claim not approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Rating Endpoints
+  /rating/calculate:
+    post:
+      tags:
+        - Rating
+      summary: Calculate premium
+      description: Calculates base premium and applicable taxes/fees
+      operationId: calculatePremium
+      x-rate-limit:
+        requests: 200
+        window: 60s
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingRequest'
+      responses:
+        '200':
+          description: Premium calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /rating/discounts/apply:
+    post:
+      tags:
+        - Rating
+      summary: Apply discounts to premium
+      description: Calculates and applies eligible discounts
+      operationId: applyDiscounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscountRequest'
+      responses:
+        '200':
+          description: Discounts applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscountResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /rating/discounts/available:
+    post:
+      tags:
+        - Rating
+      summary: Get available discounts
+      description: Returns list of discounts applicable to the risk
+      operationId: getAvailableDiscounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscountEligibilityRequest'
+      responses:
+        '200':
+          description: Available discounts retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableDiscountsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # Async Job Management
+  /jobs/{jobId}:
+    get:
+      tags:
+        - Async Jobs
+      summary: Get async job status
+      description: Retrieves status and results of long-running operations
+      operationId: getJobStatus
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Job status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatusResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /jobs/{jobId}/cancel:
+    post:
+      tags:
+        - Async Jobs
+      summary: Cancel async job
+      description: Attempts to cancel a running job
+      operationId: cancelJob
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Job cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobCancellationResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Job cannot be cancelled (already completed or failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authenticated requests
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for service-to-service authentication
+
+  parameters:
+    QuoteId:
+      name: quoteId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Unique quote identifier
+    PolicyNumber:
+      name: policyNumber
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^POL-\d{10}$'
+      description: Policy number
+    ClaimNumber:
+      name: claimNumber
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^CLM-\d{10}$'
+      description: Claim number
+
+  schemas:
+    # Common Schemas
+    Error:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    Address:
+      type: object
+      required:
+        - street1
+        - city
+        - state
+        - postalCode
+        - country
+      properties:
+        street1:
+          type: string
+          maxLength: 100
+        street2:
+          type: string
+          maxLength: 100
+        city:
+          type: string
+          maxLength: 50
+        state:
+          type: string
+          maxLength: 2
+          pattern: '^[A-Z]{2}$'
+        postalCode:
+          type: string
+          pattern: '^\d{5}(-\d{4})?$'
+        country:
+          type: string
+          default: US
+          enum: [US, CA]
+
+    Money:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: number
+          format: double
+          minimum: 0
+        currency:
+          type: string
+          enum: [USD, CAD]
+          default: USD
+
+    # Policy Schemas
+    QuoteRequest:
+      type: object
+      required:
+        - effectiveDate
+        - expirationDate
+        - insured
+        - coverages
+        - riskDetails
+      properties:
+        effectiveDate:
+          type: string
+          format: date
+        expirationDate:
+          type: string
+          format: date
+        insured:
+          $ref: '#/components/schemas/Insured'
+        coverages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coverage'
+        riskDetails:
+          type: object
+          description: Risk-specific details (property, auto, etc.)
+          additionalProperties: true
+        previousPolicyNumber:
+          type: string
+          description: For renewals or rewrites
+
+    QuoteResponse:
+      type: object
+      required:
+        - quoteId
+        - quoteNumber
+        - status
+        - premium
+        - createdAt
+        - expiresAt
+      properties:
+        quoteId:
+          type: string
+          format: uuid
+        quoteNumber:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, RATED, REFERRED, DECLINED, EXPIRED]
+        premium:
+          $ref: '#/components/schemas/PremiumDetails'
+        underwritingDecision:
+          $ref: '#/components/schemas/UnderwritingDecision'
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        bindable:
+          type: boolean
+          default: false
+
+    BindRequest:
+      type: object
+      required:
+        - quoteId
+        - paymentMethod
+        - acknowledgements
+      properties:
+        quoteId:
+          type: string
+          format: uuid
+        paymentMethod:
+          type: string
+          enum: [CREDIT_CARD, ACH, CHECK, AGENCY_BILL]
+        paymentDetails:
+          type: object
+          description: Payment method specific details
+          additionalProperties: true
+        acknowledgements:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              acknowledged:
+                type: boolean
+              timestamp:
+                type: string
+                format: date-time
+
+    PolicyResponse:
+      type: object
+      required:
+        - policyNumber
+        - status
+        - effectiveDate
+        - expirationDate
+        - insured
+        - premium
+        - coverages
+      properties:
+        policyNumber:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, CANCELLED, EXPIRED, SUSPENDED]
+        effectiveDate:
+          type: string
+          format: date
+        expirationDate:
+          type: string
+          format: date
+        insured:
+          $ref: '#/components/schemas/Insured'
+        premium:
+          $ref: '#/components/schemas/PremiumDetails'
+        coverages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coverage'
+        endorsements:
+          type: array
+          items:
+            $ref: '#/components/schemas/Endorsement'
+        claims:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClaimSummary'
+
+    EndorsementRequest:
+      type: object
+      required:
+        - effectiveDate
+        - changes
+        - reason
+      properties:
+        effectiveDate:
+          type: string
+          format: date
+        changes:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [ADD_COVERAGE, REMOVE_COVERAGE, MODIFY_COVERAGE, UPDATE_RISK, UPDATE_INSURED]
+              details:
+                type: object
+                additionalProperties: true
+        reason:
+          type: string
+          maxLength: 500
+
+    RenewalRequest:
+      type: object
+      required:
+        - renewalDate
+      properties:
+        renewalDate:
+          type: string
+          format: date
+        coverageChanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coverage'
+        riskUpdates:
+          type: object
+          additionalProperties: true
+
+    CancellationRequest:
+      type: object
+      required:
+        - effectiveDate
+        - reason
+        - initiatedBy
+      properties:
+        effectiveDate:
+          type: string
+          format: date
+        reason:
+          type: string
+          enum: [NON_PAYMENT, INSURED_REQUEST, UNDERWRITING, FRAUD, OTHER]
+        initiatedBy:
+          type: string
+          enum: [INSURED, CARRIER, AGENT]
+        refundMethod:
+          type: string
+          enum: [PRO_RATA, SHORT_RATE, FLAT_CANCEL]
+        comments:
+          type: string
+          maxLength: 1000
+
+    # Underwriting Schemas
+    RiskAssessmentRequest:
+      type: object
+      required:
+        - riskType
+        - riskData
+        - requestedCoverages
+      properties:
+        riskType:
+          type: string
+          enum: [PROPERTY, AUTO, LIABILITY, UMBRELLA]
+        riskData:
+          type: object
+          description: Risk-specific data
+          additionalProperties: true
+        requestedCoverages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coverage'
+        priorClaims:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriorClaim'
+        creditScore:
+          type: integer
+          minimum: 300
+          maximum: 850
+
+    RiskAssessmentResponse:
+      type: object
+      required:
+        - assessmentId
+        - decision
+        - riskScore
+        - factors
+      properties:
+        assessmentId:
+          type: string
+          format: uuid
+        decision:
+          type: string
+          enum: [ACCEPT, REFER, DECLINE]
+        riskScore:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+        factors:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              impact:
+                type: string
+                enum: [POSITIVE, NEUTRAL, NEGATIVE]
+              score:
+                type: number
+              description:
+                type: string
+        referralReasons:
+          type: array
+          items:
+            type: string
+        conditions:
+          type: array
+          items:
+            type: string
+
+    PricingRequest:
+      type: object
+      required:
+        - assessmentId
+        - coverages
+        - territory
+      properties:
+        assessmentId:
+          type: string
+          format: uuid
+        coverages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coverage'
+        territory:
+          type: string
+        discountCodes:
+          type: array
+          items:
+            type: string
+
+    PricingResponse:
+      type: object
+      required:
+        - basePremium
+        - adjustments
+        - totalPremium
+        - breakdown
+      properties:
+        basePremium:
+          $ref: '#/components/schemas/Money'
+        adjustments:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              description:
+                type: string
+              amount:
+                $ref: '#/components/schemas/Money'
+        totalPremium:
+          $ref: '#/components/schemas/Money'
+        breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              coverage:
+                type: string
+              premium:
+                $ref: '#/components/schemas/Money'
+
+    UnderwritingDecision:
+      type: object
+      required:
+        - decision
+        - timestamp
+        - factors
+      properties:
+        decision:
+          type: string
+          enum: [ACCEPT, REFER, DECLINE]
+        timestamp:
+          type: string
+          format: date-time
+        factors:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+              description:
+                type: string
+              impact:
+                type: string
+        conditions:
+          type: array
+          items:
+            type: string
+        referralNotes:
+          type: string
+
+    # Claims Schemas
+    FNOLRequest:
+      type: object
+      required:
+        - policyNumber
+        - lossDate
+        - lossDescription
+        - claimant
+        - lossLocation
+      properties:
+        policyNumber:
+          type: string
+        lossDate:
+          type: string
+          format: date-time
+        lossDescription:
+          type: string
+          maxLength: 2000
+        claimant:
+          $ref: '#/components/schemas/Claimant'
+        lossLocation:
+          $ref: '#/components/schemas/Address'
+        estimatedLossAmount:
+          $ref: '#/components/schemas/Money'
+        policeReportNumber:
+          type: string
+        witnesses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Witness'
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              url:
+                type: string
+                format: uri
+
+    ClaimResponse:
+      type: object
+      required:
+        - claimNumber
+        - status
+        - policyNumber
+        - lossDate
+        - reportedDate
+      properties:
+        claimNumber:
+          type: string
+        status:
+          type: string
+          enum: [OPEN, UNDER_INVESTIGATION, APPROVED, DENIED, CLOSED, REOPENED]
+        policyNumber:
+          type: string
+        lossDate:
+          type: string
+          format: date-time
+        reportedDate:
+          type: string
+          format: date-time
+        adjuster:
+          $ref: '#/components/schemas/Adjuster'
+        reserve:
+          $ref: '#/components/schemas/Money'
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+        timeline:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClaimEvent'
+
+    AdjudicationRequest:
+      type: object
+      required:
+        - decision
+        - findings
+        - approvedAmount
+      properties:
+        decision:
+          type: string
+          enum: [APPROVE, PARTIAL_APPROVE, DENY, INVESTIGATE_FURTHER]
+        findings:
+          type: string
+          maxLength: 5000
+        approvedAmount:
+          $ref: '#/components/schemas/Money'
+        denialReasons:
+          type: array
+          items:
+            type: string
+        coverageBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              coverage:
+                type: string
+              amount:
+                $ref: '#/components/schemas/Money'
+              deductible:
+                $ref: '#/components/schemas/Money'
+
+    PaymentRequest:
+      type: object
+      required:
+        - paymentType
+        - amount
+        - payee
+        - paymentMethod
+      properties:
+        paymentType:
+          type: string
+          enum: [INDEMNITY, ADVANCE, FINAL, SUPPLEMENTAL]
+        amount:
+          $ref: '#/components/schemas/Money'
+        payee:
+          $ref: '#/components/schemas/Payee'
+        paymentMethod:
+          type: string
+          enum: [CHECK, ACH, WIRE, CREDIT_CARD]
+        memo:
+          type: string
+          maxLength: 500
+
+    # Rating Schemas
+    RatingRequest:
+      type: object
+      required:
+        - state
+        - effectiveDate
+        - riskCharacteristics
+        - coverages
+      properties:
+        state:
+          type: string
+          maxLength: 2
+        effectiveDate:
+          type: string
+          format: date
+        riskCharacteristics:
+          type: object
+          additionalProperties: true
+        coverages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coverage'
+        priorPremium:
+          $ref: '#/components/schemas/Money'
+
+    RatingResponse:
+      type: object
+      required:
+        - basePremium
+        - modifiedPremium
+        - taxes
+        - fees
+        - totalPremium
+      properties:
+        basePremium:
+          $ref: '#/components/schemas/Money'
+        modifiedPremium:
+          $ref: '#/components/schemas/Money'
+        taxes:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              jurisdiction:
+                type: string
+              amount:
+                $ref: '#/components/schemas/Money'
+        fees:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              description:
+                type: string
+              amount:
+                $ref: '#/components/schemas/Money'
+        totalPremium:
+          $ref: '#/components/schemas/Money'
+        factors:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              value:
+                type: number
+              impact:
+                type: number
+
+    DiscountRequest:
+      type: object
+      required:
+        - basePremium
+        - applicableDiscounts
+      properties:
+        basePremium:
+          $ref: '#/components/schemas/Money'
+        applicableDiscounts:
+          type: array
+          items:
+            type: string
+        riskData:
+          type: object
+          additionalProperties: true
+
+    DiscountResponse:
+      type: object
+      required:
+        - originalPremium
+        - discounts
+        - finalPremium
+      properties:
+        originalPremium:
+          $ref: '#/components/schemas/Money'
+        discounts:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              description:
+                type: string
+              percentage:
+                type: number
+                minimum: 0
+                maximum: 100
+              amount:
+                $ref: '#/components/schemas/Money'
+        finalPremium:
+          $ref: '#/components/schemas/Money'
+
+    DiscountEligibilityRequest:
+      type: object
+      required:
+        - riskType
+        - riskData
+      properties:
+        riskType:
+          type: string
+        riskData:
+          type: object
+          additionalProperties: true
+        existingDiscounts:
+          type: array
+          items:
+            type: string
+
+    AvailableDiscountsResponse:
+      type: object
+      required:
+        - discounts
+      properties:
+        discounts:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+              eligibility:
+                type: string
+                enum: [ELIGIBLE, INELIGIBLE, CONDITIONAL]
+              conditions:
+                type: array
+                items:
+                  type: string
+              maxDiscount:
+                type: number
+                minimum: 0
+                maximum: 100
+
+    # Async Job Schemas
+    AsyncJobResponse:
+      type: object
+      required:
+        - jobId
+        - status
+        - createdAt
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PENDING, PROCESSING, COMPLETED, FAILED, CANCELLED]
+        createdAt:
+          type: string
+          format: date-time
+        estimatedCompletionTime:
+          type: string
+          format: date-time
+        pollUrl:
+          type: string
+          format: uri
+
+    JobStatusResponse:
+      type: object
+      required:
+        - jobId
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PENDING, PROCESSING, COMPLETED, FAILED, CANCELLED]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        result:
+          type: object
+          description: Job-specific result data
+          additionalProperties: true
+        error:
+          $ref: '#/components/schemas/Error'
+        progress:
+          type: object
+          properties:
+            current:
+              type: integer
+            total:
+              type: integer
+            message:
+              type: string
+
+    JobCancellationResponse:
+      type: object
+      required:
+        - jobId
+        - cancelled
+        - timestamp
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        cancelled:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+
+    # Supporting Schemas
+    Insured:
+      type: object
+      required:
+        - type
+        - name
+        - address
+      properties:
+        type:
+          type: string
+          enum: [INDIVIDUAL, BUSINESS]
+        name:
+          type: string
+          maxLength: 200
+        address:
+          $ref: '#/components/schemas/Address'
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          pattern: '^\+?1?\d{10,14}$'
+        dateOfBirth:
+          type: string
+          format: date
+        businessInfo:
+          type: object
+          properties:
+            ein:
+              type: string
+            naicsCode:
+              type: string
+            yearEstablished:
+              type: integer
+
+    Coverage:
+      type: object
+      required:
+        - type
+        - limit
+      properties:
+        type:
+          type: string
+        limit:
+          $ref: '#/components/schemas/Money'
+        deductible:
+          $ref: '#/components/schemas/Money'
+        sublimits:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              limit:
+                $ref: '#/components/schemas/Money'
+
+    PremiumDetails:
+      type: object
+      required:
+        - basePremium
+        - taxes
+        - fees
+        - totalPremium
+        - paymentSchedule
+      properties:
+        basePremium:
+          $ref: '#/components/schemas/Money'
+        taxes:
+          $ref: '#/components/schemas/Money'
+        fees:
+          $ref: '#/components/schemas/Money'
+        discounts:
+          $ref: '#/components/schemas/Money'
+        totalPremium:
+          $ref: '#/components/schemas/Money'
+        paymentSchedule:
+          type: string
+          enum: [ANNUAL, SEMI_ANNUAL, QUARTERLY, MONTHLY]
+        installments:
+          type: array
+          items:
+            type: object
+            properties:
+              dueDate:
+                type: string
+                format: date
+              amount:
+                $ref: '#/components/schemas/Money'
+
+    Endorsement:
+      type: object
+      required:
+        - endorsementNumber
+        - effectiveDate
+        - type
+        - premium
+      properties:
+        endorsementNumber:
+          type: string
+        effectiveDate:
+          type: string
+          format: date
+        type:
+          type: string
+        description:
+          type: string
+        premium:
+          $ref: '#/components/schemas/Money'
+
+    ClaimSummary:
+      type: object
+      required:
+        - claimNumber
+        - lossDate
+        - status
+      properties:
+        claimNumber:
+          type: string
+        lossDate:
+          type: string
+          format: date
+        status:
+          type: string
+        paidAmount:
+          $ref: '#/components/schemas/Money'
+        reserveAmount:
+          $ref: '#/components/schemas/Money'
+
+    PriorClaim:
+      type: object
+      required:
+        - date
+        - type
+        - amount
+      properties:
+        date:
+          type: string
+          format: date
+        type:
+          type: string
+        amount:
+          $ref: '#/components/schemas/Money'
+        description:
+          type: string
+
+    Claimant:
+      type: object
+      required:
+        - name
+        - relationship
+        - contactInfo
+      properties:
+        name:
+          type: string
+        relationship:
+          type: string
+          enum: [INSURED, SPOUSE, DEPENDENT, THIRD_PARTY, OTHER]
+        contactInfo:
+          type: object
+          properties:
+            phone:
+              type: string
+            email:
+              type: string
+              format: email
+            preferredContact:
+              type: string
+              enum: [PHONE, EMAIL, MAIL]
+
+    Witness:
+      type: object
+      required:
+        - name
+        - phone
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        statement:
+          type: string
+          maxLength: 2000
+
+    Adjuster:
+      type: object
+      required:
+        - id
+        - name
+        - email
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        licenseNumber:
+          type: string
+
+    Payment:
+      type: object
+      required:
+        - paymentId
+        - amount
+        - date
+        - status
+      properties:
+        paymentId:
+          type: string
+        amount:
+          $ref: '#/components/schemas/Money'
+        date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [PENDING, PROCESSED, FAILED, CANCELLED]
+        method:
+          type: string
+        payee:
+          type: string
+
+    ClaimEvent:
+      type: object
+      required:
+        - timestamp
+        - event
+        - description
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        event:
+          type: string
+        description:
+          type: string
+        user:
+          type: string
+
+    Payee:
+      type: object
+      required:
+        - type
+        - name
+      properties:
+        type:
+          type: string
+          enum: [INSURED, CLAIMANT, VENDOR, PROVIDER, OTHER]
+        name:
+          type: string
+        taxId:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        bankAccount:
+          type: object
+          properties:
+            accountNumber:
+              type: string
+            routingNumber:
+              type: string
+            accountType:
+              type: string
+              enum: [CHECKING, SAVINGS]
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Authentication credentials missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Request limit per window
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests in window
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Time when rate limit resets (Unix timestamp)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+x-webhooks:
+  policyBound:
+    post:
+      summary: Policy successfully bound
+      operationId: webhookPolicyBound
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventType:
+                  type: string
+                  const: policy.bound
+                timestamp:
+                  type: string
+                  format: date-time
+                data:
+                  type: object
+                  properties:
+                    policyNumber:
+                      type: string
+                    quoteId:
+                      type: string
+                      format: uuid
+                    effectiveDate:
+                      type: string
+                      format: date
+      responses:
+        '200':
+          description: Webhook processed successfully
+
+  claimStatusChanged:
+    post:
+      summary: Claim status changed
+      operationId: webhookClaimStatusChanged
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventType:
+                  type: string
+                  const: claim.status.changed
+                timestamp:
+                  type: string
+                  format: date-time
+                data:
+                  type: object
+                  properties:
+                    claimNumber:
+                      type: string
+                    previousStatus:
+                      type: string
+                    newStatus:
+                      type: string
+                    reason:
+                      type: string
+      responses:
+        '200':
+          description: Webhook processed successfully

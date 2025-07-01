@@ -1,0 +1,450 @@
+# Rating Engine Architecture Specification
+# High-performance premium calculation and pricing engine for insurance products
+
+service:
+  name: rating-engine
+  version: 1.0.0
+  description: Real-time premium calculation engine with dynamic pricing and rate optimization
+  domain: insurance.rating
+  type: calculation-engine
+
+architecture:
+  pattern: compute-intensive-microservice
+  style: functional
+  deployment: containerized
+  
+service_boundaries:
+  responsibilities:
+    - Premium calculation
+    - Rate determination
+    - Discount application
+    - Surcharge calculation
+    - Rate book management
+    - Pricing optimization
+    - Competitive analysis
+    - Rate testing and simulation
+    
+  excluded_responsibilities:
+    - Risk assessment (handled by underwriting-engine)
+    - Policy issuance (handled by policy-service)
+    - Payment processing (handled by billing-service)
+    - Claims history analysis (handled by claims-processor)
+    
+  bounded_context:
+    aggregates:
+      - RateCalculation
+      - RateBook
+      - PricingModel
+      - DiscountScheme
+      
+    entities:
+      - RateRequest
+      - RateResponse
+      - RateBook
+      - RateTable
+      - DiscountRule
+      - Surcharge
+      - PricingFactor
+      - CompetitiveRate
+      
+    value_objects:
+      - Premium
+      - BaseRate
+      - FinalRate
+      - DiscountAmount
+      - RatingFactor
+      - TerritoryCode
+      - RiskClass
+
+api:
+  rest:
+    base_path: /api/v1/rating
+    endpoints:
+      - method: POST
+        path: /calculate
+        description: Calculate premium for quote/policy
+        async: false
+        sla:
+          response_time: 200ms
+          availability: 99.99%
+          
+      - method: POST
+        path: /batch-calculate
+        description: Batch premium calculation
+        async: true
+        batch_size: 1000
+        sla:
+          response_time: 10s
+          
+      - method: GET
+        path: /rate-books/{productCode}
+        description: Get rate book for product
+        cache: true
+        cache_ttl: 3600s
+        sla:
+          response_time: 50ms
+          
+      - method: POST
+        path: /simulate
+        description: Simulate rate changes
+        async: true
+        sla:
+          response_time: 5000ms
+          
+      - method: PUT
+        path: /rate-books/{rateBookId}
+        description: Update rate book
+        async: false
+        versioning: required
+        sla:
+          response_time: 1000ms
+          
+  grpc:
+    services:
+      - name: RatingCalculationService
+        methods:
+          - CalculatePremium
+          - CalculateBatchPremiums
+          - GetRatingFactors
+          - ApplyDiscounts
+          
+      - name: RateManagementService
+        methods:
+          - CreateRateBook
+          - UpdateRates
+          - ActivateRateBook
+          - GetRateHistory
+
+async_patterns:
+  messaging:
+    broker: kafka
+    patterns:
+      - pattern: request-reply
+        topics:
+          - rating-requests
+          - rating-responses
+        timeout: 5s
+        
+      - pattern: event-driven
+        events:
+          - RateCalculated
+          - RateBookUpdated
+          - DiscountApplied
+          - RateSimulationCompleted
+          
+      - pattern: cache-aside
+        cache_events:
+          - RateBookInvalidated
+          - FactorTableUpdated
+          - DiscountRuleChanged
+          
+  queues:
+    - name: batch-calculations
+      type: work
+      durability: persistent
+      max_batch_size: 10000
+      processing_timeout: 60s
+      
+    - name: rate-simulations
+      type: work
+      durability: persistent
+      priority: low
+      
+    - name: competitive-analysis
+      type: scheduled
+      schedule: "0 2 * * *"
+
+performance_requirements:
+  throughput:
+    single_calculation: 50000/minute
+    batch_calculation: 1000000/hour
+    rate_book_updates: 100/hour
+    
+  latency:
+    simple_calculation:
+      p50: 20ms
+      p95: 100ms
+      p99: 200ms
+      p999: 500ms
+    complex_calculation:
+      p50: 100ms
+      p95: 500ms
+      p99: 1000ms
+      
+  computation:
+    precision: 4_decimal_places
+    rounding: bankers_rounding
+    currency_support: multi_currency
+    
+  scalability:
+    horizontal: auto-scaling
+    min_instances: 20
+    max_instances: 500
+    scaling_metric: request_rate
+    scale_up_threshold: 80%
+    scale_down_threshold: 30%
+    
+  availability:
+    target: 99.99%
+    cache_fallback: enabled
+    degraded_mode: last_known_rates
+
+calculation_engine:
+  algorithms:
+    base_rate_calculation:
+      type: table_lookup
+      optimization: indexed_binary_search
+      
+    factor_application:
+      type: multiplicative
+      order: deterministic
+      validation: range_check
+      
+    discount_calculation:
+      type: rule_based
+      stacking: configurable
+      max_discount: 40%
+      
+    territorial_rating:
+      type: geo_spatial
+      precision: zip_plus_4
+      smoothing: enabled
+      
+  rate_structures:
+    - type: class_based
+      products: [auto, home]
+      factors:
+        - age
+        - location
+        - credit_score
+        - claims_history
+        
+    - type: tier_based
+      products: [life, health]
+      factors:
+        - age_band
+        - health_class
+        - coverage_amount
+        - term_length
+        
+    - type: usage_based
+      products: [pay_per_mile]
+      factors:
+        - miles_driven
+        - driving_behavior
+        - time_of_day
+        
+  optimization:
+    caching:
+      strategy: multi_level
+      l1_cache: in_memory
+      l2_cache: redis
+      l3_cache: database
+      
+    computation:
+      vectorization: enabled
+      parallel_processing: true
+      gpu_acceleration: optional
+      
+    precomputation:
+      common_scenarios: true
+      update_frequency: daily
+
+data_management:
+  storage:
+    rate_books:
+      type: postgresql
+      schema: rating
+      versioning: enabled
+      audit_trail: complete
+      
+    calculation_cache:
+      type: redis_cluster
+      eviction: lru
+      ttl: 24_hours
+      
+    historical_rates:
+      type: timescaledb
+      retention: 10_years
+      compression: enabled
+      
+  rate_data:
+    sources:
+      - internal_actuarial
+      - iso_rates
+      - competitive_intelligence
+      - market_analysis
+      
+    update_process:
+      approval_required: true
+      testing_required: true
+      rollback_enabled: true
+      
+  consistency:
+    rate_book_versioning: immutable
+    effective_dating: required
+    concurrent_updates: locked
+
+monitoring:
+  metrics:
+    business:
+      - average_premium_calculated
+      - calculation_accuracy
+      - discount_utilization
+      - rate_competitiveness
+      - margin_analysis
+      
+    technical:
+      - calculation_latency
+      - cache_hit_rate
+      - cpu_utilization
+      - memory_usage
+      - queue_depth
+      
+    accuracy:
+      - calculation_errors
+      - rounding_errors
+      - factor_misapplication
+      - rate_book_mismatches
+      
+  logging:
+    calculation_audit:
+      enabled: true
+      fields:
+        - request_id
+        - product_code
+        - base_rate
+        - factors_applied
+        - discounts_applied
+        - final_premium
+        - calculation_time
+        
+  alerts:
+    - metric: calculation_error_rate
+      threshold: ">0.1%"
+      window: 5m
+      severity: critical
+      
+    - metric: response_time_p99
+      threshold: ">500ms"
+      window: 5m
+      severity: warning
+      
+    - metric: cache_hit_rate
+      threshold: "<80%"
+      window: 15m
+      severity: info
+
+testing:
+  strategies:
+    unit_testing:
+      coverage: 95%
+      focus_areas:
+        - calculation_accuracy
+        - edge_cases
+        - rounding_behavior
+        
+    integration_testing:
+      scenarios:
+        - rate_book_updates
+        - cache_invalidation
+        - concurrent_calculations
+        
+    performance_testing:
+      load_patterns:
+        - steady_state
+        - spike_traffic
+        - gradual_ramp
+        
+    regression_testing:
+      automated: true
+      frequency: per_deployment
+      comparison: historical_results
+
+security:
+  authentication:
+    internal_services: mtls
+    external_apis: api_key
+    
+  authorization:
+    rate_updates: role_based
+    calculation_access: service_based
+    
+  data_protection:
+    rate_books: encrypted_at_rest
+    calculation_logs: pii_masked
+    
+  compliance:
+    regulatory_approval: required
+    audit_trail: 7_years
+    rate_filing: automated
+
+integration:
+  internal_services:
+    - service: underwriting-engine
+      purpose: risk_factors
+      protocol: grpc
+      caching: enabled
+      
+    - service: policy-service
+      purpose: policy_data
+      protocol: rest
+      retry: 3
+      
+    - service: claims-processor
+      purpose: claims_history
+      protocol: async
+      
+  external_services:
+    - service: iso_rating
+      purpose: base_rates
+      protocol: rest
+      authentication: oauth2
+      
+    - service: credit_bureau
+      purpose: credit_scores
+      protocol: soap
+      caching: 30_days
+      
+    - service: geocoding_service
+      purpose: territory_lookup
+      protocol: rest
+      rate_limit: 1000/minute
+
+deployment:
+  container:
+    base_image: node:18-alpine
+    optimization: production
+    
+  kubernetes:
+    namespace: insurance
+    deployment_strategy: rolling_update
+    
+    resources:
+      requests:
+        cpu: 4000m
+        memory: 8Gi
+      limits:
+        cpu: 16000m
+        memory: 32Gi
+        
+    autoscaling:
+      metrics:
+        - type: cpu
+          target: 70%
+        - type: custom
+          metric: request_rate
+          target: 1000/s
+          
+  caching_layer:
+    type: hazelcast
+    topology: embedded
+    heap_size: 4g
+    
+  environment_variables:
+    - name: RATE_BOOK_VERSION
+      configmap: true
+    - name: CALCULATION_PRECISION
+      default: "4"
+    - name: CACHE_STRATEGY
+      default: "aggressive"

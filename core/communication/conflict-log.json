@@ -1,0 +1,446 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Conflict Log",
+  "description": "Schema for tracking and resolving conflicts in the SAGE system",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/conflict"
+      }
+    },
+    "resolution_strategies": {
+      "$ref": "#/definitions/resolutionStrategies"
+    }
+  },
+  "definitions": {
+    "conflict": {
+      "type": "object",
+      "required": ["id", "type", "status", "detected_at", "detecting_agent", "description"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^CONF-[0-9]{8}-[0-9]{6}$",
+          "description": "Unique conflict identifier (CONF-YYYYMMDD-HHMMSS)"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["branch", "file", "resource", "dependency"],
+          "description": "Type of conflict"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["detected", "in_progress", "resolved", "escalated"],
+          "description": "Current status of the conflict"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Severity level of the conflict"
+        },
+        "detected_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when conflict was detected"
+        },
+        "detecting_agent": {
+          "type": "string",
+          "description": "Agent ID that detected the conflict"
+        },
+        "involved_agents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of agents involved in the conflict"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the conflict"
+        },
+        "affected_resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["file", "branch", "package", "api", "database"]
+              },
+              "path": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "resolution": {
+          "type": "object",
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "description": "Strategy used to resolve the conflict"
+            },
+            "resolved_by": {
+              "type": "string",
+              "description": "Agent ID that resolved the conflict"
+            },
+            "resolved_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "actions_taken": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "agent": {
+                    "type": "string"
+                  },
+                  "result": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "outcome": {
+              "type": "string",
+              "description": "Final outcome of the resolution"
+            }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional conflict-specific metadata"
+        }
+      }
+    },
+    "resolutionStrategies": {
+      "type": "object",
+      "properties": {
+        "branch": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "applicability": {
+                "type": "string"
+              },
+              "priority": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              }
+            }
+          }
+        },
+        "file": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/resolutionStrategies/properties/branch/items"
+          }
+        },
+        "resource": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/resolutionStrategies/properties/branch/items"
+          }
+        },
+        "dependency": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/resolutionStrategies/properties/branch/items"
+          }
+        }
+      }
+    }
+  },
+  "schema_version": "1.0.0",
+  "conflicts": [
+    {
+      "id": "CONF-20250701-143022",
+      "type": "file",
+      "status": "resolved",
+      "severity": "medium",
+      "detected_at": "2025-07-01T14:30:22Z",
+      "detecting_agent": "agent-code-001",
+      "involved_agents": ["agent-code-001", "agent-code-002"],
+      "description": "Concurrent modifications to core/agents/base-agent.py detected",
+      "affected_resources": [
+        {
+          "type": "file",
+          "path": "core/agents/base-agent.py",
+          "details": {
+            "conflicting_lines": [45, 46, 78],
+            "agent_modifications": {
+              "agent-code-001": "Added new validation method",
+              "agent-code-002": "Modified error handling"
+            }
+          }
+        }
+      ],
+      "resolution": {
+        "strategy": "merge-with-review",
+        "resolved_by": "agent-coordinator",
+        "resolved_at": "2025-07-01T14:35:10Z",
+        "actions_taken": [
+          {
+            "action": "Analyzed conflicting changes",
+            "timestamp": "2025-07-01T14:31:00Z",
+            "agent": "agent-coordinator",
+            "result": "Identified non-overlapping modifications"
+          },
+          {
+            "action": "Merged changes using 3-way merge",
+            "timestamp": "2025-07-01T14:33:00Z",
+            "agent": "agent-coordinator",
+            "result": "Successfully merged without data loss"
+          },
+          {
+            "action": "Ran validation tests",
+            "timestamp": "2025-07-01T14:34:30Z",
+            "agent": "agent-test",
+            "result": "All tests passed"
+          }
+        ],
+        "outcome": "Changes successfully merged with both modifications preserved"
+      }
+    },
+    {
+      "id": "CONF-20250701-151530",
+      "type": "dependency",
+      "status": "resolved",
+      "severity": "high",
+      "detected_at": "2025-07-01T15:15:30Z",
+      "detecting_agent": "agent-build",
+      "involved_agents": ["agent-frontend-001", "agent-backend-001"],
+      "description": "Incompatible package versions specified in requirements",
+      "affected_resources": [
+        {
+          "type": "package",
+          "path": "requirements.txt",
+          "details": {
+            "package": "numpy",
+            "conflicts": {
+              "agent-frontend-001": ">=1.24.0",
+              "agent-backend-001": "==1.23.5"
+            }
+          }
+        }
+      ],
+      "resolution": {
+        "strategy": "version-reconciliation",
+        "resolved_by": "agent-dependency-manager",
+        "resolved_at": "2025-07-01T15:25:00Z",
+        "actions_taken": [
+          {
+            "action": "Analyzed dependency tree",
+            "timestamp": "2025-07-01T15:17:00Z",
+            "agent": "agent-dependency-manager",
+            "result": "Found compatible version 1.24.3"
+          },
+          {
+            "action": "Updated all references",
+            "timestamp": "2025-07-01T15:20:00Z",
+            "agent": "agent-dependency-manager",
+            "result": "Updated to numpy==1.24.3"
+          },
+          {
+            "action": "Validated compatibility",
+            "timestamp": "2025-07-01T15:23:00Z",
+            "agent": "agent-test",
+            "result": "All components compatible"
+          }
+        ],
+        "outcome": "Dependency conflict resolved with compatible version"
+      }
+    },
+    {
+      "id": "CONF-20250701-162045",
+      "type": "branch",
+      "status": "in_progress",
+      "severity": "medium",
+      "detected_at": "2025-07-01T16:20:45Z",
+      "detecting_agent": "agent-git",
+      "involved_agents": ["agent-feature-001", "agent-feature-002"],
+      "description": "Merge conflict between feature branches",
+      "affected_resources": [
+        {
+          "type": "branch",
+          "path": "feature/auth-system",
+          "details": {
+            "base_branch": "main",
+            "conflicting_branch": "feature/user-management",
+            "conflicting_files": ["core/auth/user.py", "core/auth/permissions.py"]
+          }
+        }
+      ],
+      "metadata": {
+        "merge_base": "a1b2c3d4",
+        "head_commits": {
+          "feature/auth-system": "e5f6g7h8",
+          "feature/user-management": "i9j0k1l2"
+        }
+      }
+    },
+    {
+      "id": "CONF-20250701-170500",
+      "type": "resource",
+      "status": "detected",
+      "severity": "critical",
+      "detected_at": "2025-07-01T17:05:00Z",
+      "detecting_agent": "agent-monitor",
+      "involved_agents": ["agent-process-001", "agent-process-002", "agent-process-003"],
+      "description": "Multiple agents attempting to access exclusive database lock",
+      "affected_resources": [
+        {
+          "type": "database",
+          "path": "postgresql://main_db/users_table",
+          "details": {
+            "lock_type": "exclusive",
+            "requested_by": ["agent-process-001", "agent-process-002", "agent-process-003"],
+            "current_holder": "agent-process-001",
+            "wait_time_ms": {
+              "agent-process-002": 1500,
+              "agent-process-003": 2300
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "database_load": "high",
+        "transaction_ids": {
+          "agent-process-001": "txn_123456",
+          "agent-process-002": "txn_789012",
+          "agent-process-003": "txn_345678"
+        }
+      }
+    }
+  ],
+  "resolution_strategies": {
+    "branch": [
+      {
+        "name": "fast-forward-merge",
+        "description": "Apply commits directly when branches have not diverged",
+        "applicability": "No divergent commits between branches",
+        "priority": 1
+      },
+      {
+        "name": "three-way-merge",
+        "description": "Merge branches using common ancestor as base",
+        "applicability": "Branches have diverged but changes don't conflict",
+        "priority": 2
+      },
+      {
+        "name": "interactive-rebase",
+        "description": "Rebase and resolve conflicts interactively",
+        "applicability": "Complex conflicts requiring manual intervention",
+        "priority": 3
+      },
+      {
+        "name": "cherry-pick",
+        "description": "Apply specific commits from one branch to another",
+        "applicability": "Only certain changes need to be merged",
+        "priority": 4
+      }
+    ],
+    "file": [
+      {
+        "name": "auto-merge",
+        "description": "Automatically merge non-conflicting changes",
+        "applicability": "Changes affect different parts of the file",
+        "priority": 1
+      },
+      {
+        "name": "merge-with-review",
+        "description": "Merge changes with coordinator review",
+        "applicability": "Changes affect same areas but are compatible",
+        "priority": 2
+      },
+      {
+        "name": "sequential-application",
+        "description": "Apply changes in sequence based on timestamp",
+        "applicability": "Changes must be applied in order",
+        "priority": 3
+      },
+      {
+        "name": "manual-resolution",
+        "description": "Require manual intervention to resolve",
+        "applicability": "Complex conflicts that cannot be auto-resolved",
+        "priority": 4
+      }
+    ],
+    "resource": [
+      {
+        "name": "queue-based-access",
+        "description": "Implement queue for resource access",
+        "applicability": "Multiple agents need sequential access",
+        "priority": 1
+      },
+      {
+        "name": "time-slicing",
+        "description": "Allocate time slots for resource usage",
+        "applicability": "Resource can be shared with time division",
+        "priority": 2
+      },
+      {
+        "name": "priority-based-allocation",
+        "description": "Allocate resources based on agent priority",
+        "applicability": "Some agents have higher priority needs",
+        "priority": 3
+      },
+      {
+        "name": "resource-pooling",
+        "description": "Create pool of resources for concurrent access",
+        "applicability": "Multiple instances of resource available",
+        "priority": 4
+      }
+    ],
+    "dependency": [
+      {
+        "name": "version-reconciliation",
+        "description": "Find compatible version that satisfies all constraints",
+        "applicability": "Version ranges have overlap",
+        "priority": 1
+      },
+      {
+        "name": "dependency-isolation",
+        "description": "Isolate dependencies in separate environments",
+        "applicability": "Incompatible versions required",
+        "priority": 2
+      },
+      {
+        "name": "version-pinning",
+        "description": "Pin to specific version across all agents",
+        "applicability": "Stability more important than features",
+        "priority": 3
+      },
+      {
+        "name": "alternative-package",
+        "description": "Use alternative package with similar functionality",
+        "applicability": "Original package causing conflicts",
+        "priority": 4
+      }
+    ]
+  }
+}
