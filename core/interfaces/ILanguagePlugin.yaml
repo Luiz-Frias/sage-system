@@ -1,0 +1,416 @@
+# SAGE Language Plugin Interface Definition
+# Version: 1.0.0
+# This interface defines the contract that all language plugins must implement
+
+interface:
+  name: ILanguagePlugin
+  version: "1.0.0"
+  description: |
+    Defines the contract for language-specific code generation plugins.
+    Language plugins provide templates, patterns, and guardrails for generating
+    high-quality code in a specific programming language.
+
+# Plugin manifest structure that must be present in each language plugin
+manifest:
+  required_fields:
+    name:
+      type: string
+      description: "Unique identifier for the language plugin"
+      pattern: "^[a-z]+$"
+      example: "python"
+    
+    version:
+      type: string
+      description: "Semantic version of the plugin"
+      pattern: "^\\d+\\.\\d+\\.\\d+$"
+      example: "1.0.0"
+    
+    language:
+      type: string
+      description: "Programming language this plugin supports"
+      enum: ["python", "typescript", "rust", "java", "go", "csharp", "ruby"]
+    
+    supported_versions:
+      type: array
+      description: "Language versions supported by this plugin"
+      items:
+        type: string
+        pattern: "^\\d+\\.\\d+(\\.\\d+)?$"
+      example: ["3.9", "3.10", "3.11", "3.12"]
+    
+    capabilities:
+      type: object
+      description: "Features and capabilities provided by this plugin"
+      properties:
+        templates:
+          type: boolean
+          description: "Whether the plugin provides code templates"
+        
+        patterns:
+          type: boolean
+          description: "Whether the plugin provides design patterns"
+        
+        guardrails:
+          type: boolean
+          description: "Whether the plugin provides code quality guardrails"
+        
+        testing:
+          type: boolean
+          description: "Whether the plugin provides testing utilities"
+        
+        linting:
+          type: boolean
+          description: "Whether the plugin provides linting configurations"
+        
+        formatting:
+          type: boolean
+          description: "Whether the plugin provides formatting rules"
+    
+    dependencies:
+      type: object
+      description: "External dependencies required by the plugin"
+      properties:
+        runtime:
+          type: array
+          description: "Runtime dependencies"
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              version:
+                type: string
+              optional:
+                type: boolean
+                default: false
+        
+        development:
+          type: array
+          description: "Development dependencies"
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              version:
+                type: string
+
+# Required methods that each language plugin must implement
+required_methods:
+  initialize:
+    description: "Initialize the language plugin with configuration"
+    parameters:
+      - name: config
+        type: object
+        description: "Configuration object from sage.config.yaml"
+    returns:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        metadata:
+          type: object
+  
+  validate_environment:
+    description: "Validate that the required language runtime is available"
+    parameters: []
+    returns:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        version:
+          type: string
+        issues:
+          type: array
+          items:
+            type: string
+  
+  get_template:
+    description: "Retrieve a specific code template"
+    parameters:
+      - name: template_name
+        type: string
+        description: "Name of the template to retrieve"
+      - name: context
+        type: object
+        description: "Context variables for template rendering"
+    returns:
+      type: object
+      properties:
+        content:
+          type: string
+          description: "Generated code content"
+        metadata:
+          type: object
+          description: "Template metadata and requirements"
+  
+  get_pattern:
+    description: "Retrieve a specific design pattern implementation"
+    parameters:
+      - name: pattern_name
+        type: string
+        description: "Name of the design pattern"
+      - name: options
+        type: object
+        description: "Pattern customization options"
+    returns:
+      type: object
+      properties:
+        files:
+          type: array
+          description: "List of files to create"
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+              content:
+                type: string
+              description:
+                type: string
+  
+  apply_guardrails:
+    description: "Apply language-specific guardrails to code"
+    parameters:
+      - name: code
+        type: string
+        description: "Code to validate"
+      - name: guardrail_set
+        type: string
+        description: "Which guardrail set to apply"
+        enum: ["security", "performance", "style", "best_practices", "all"]
+    returns:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        issues:
+          type: array
+          items:
+            type: object
+            properties:
+              severity:
+                type: string
+                enum: ["error", "warning", "info"]
+              line:
+                type: integer
+              column:
+                type: integer
+              message:
+                type: string
+              rule:
+                type: string
+        suggestions:
+          type: array
+          items:
+            type: object
+            properties:
+              line:
+                type: integer
+              original:
+                type: string
+              suggested:
+                type: string
+              reason:
+                type: string
+  
+  generate_tests:
+    description: "Generate tests for given code"
+    parameters:
+      - name: code
+        type: string
+        description: "Code to generate tests for"
+      - name: test_framework
+        type: string
+        description: "Testing framework to use"
+      - name: coverage_target
+        type: number
+        description: "Target test coverage percentage"
+        minimum: 0
+        maximum: 100
+    returns:
+      type: object
+      properties:
+        test_files:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+              content:
+                type: string
+        setup_instructions:
+          type: string
+        coverage_estimate:
+          type: number
+
+# Hook system for extending plugin functionality
+hooks:
+  pre_generate:
+    description: "Called before code generation"
+    parameters:
+      - name: context
+        type: object
+        description: "Generation context"
+    returns:
+      type: object
+      properties:
+        continue:
+          type: boolean
+        modified_context:
+          type: object
+  
+  post_generate:
+    description: "Called after code generation"
+    parameters:
+      - name: generated_code
+        type: string
+      - name: context
+        type: object
+    returns:
+      type: object
+      properties:
+        modified_code:
+          type: string
+        metadata:
+          type: object
+  
+  pre_validate:
+    description: "Called before code validation"
+    parameters:
+      - name: code
+        type: string
+      - name: validation_rules
+        type: array
+    returns:
+      type: object
+      properties:
+        continue:
+          type: boolean
+        additional_rules:
+          type: array
+  
+  post_validate:
+    description: "Called after code validation"
+    parameters:
+      - name: validation_results
+        type: object
+    returns:
+      type: object
+      properties:
+        modified_results:
+          type: object
+        additional_actions:
+          type: array
+
+# Standard directory structure for language plugins
+directory_structure:
+  required:
+    - path: "manifest.yaml"
+      description: "Plugin manifest file"
+    
+    - path: "templates/"
+      description: "Code templates directory"
+      children:
+        - "base/"
+        - "advanced/"
+        - "domain-specific/"
+    
+    - path: "patterns/"
+      description: "Design patterns directory"
+      children:
+        - "creational/"
+        - "structural/"
+        - "behavioral/"
+        - "architectural/"
+    
+    - path: "guardrails/"
+      description: "Code quality rules directory"
+      children:
+        - "security.yaml"
+        - "performance.yaml"
+        - "style.yaml"
+        - "best-practices.yaml"
+  
+  optional:
+    - path: "examples/"
+      description: "Example implementations"
+    
+    - path: "docs/"
+      description: "Plugin documentation"
+    
+    - path: "tests/"
+      description: "Plugin test suite"
+    
+    - path: "config/"
+      description: "Default configurations"
+
+# Plugin lifecycle events
+lifecycle:
+  install:
+    description: "Called when plugin is installed"
+    required: true
+  
+  activate:
+    description: "Called when plugin is activated"
+    required: true
+  
+  deactivate:
+    description: "Called when plugin is deactivated"
+    required: true
+  
+  uninstall:
+    description: "Called when plugin is uninstalled"
+    required: true
+  
+  update:
+    description: "Called when plugin is updated"
+    required: false
+
+# Metadata requirements
+metadata:
+  author:
+    type: object
+    required: true
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+        format: email
+      url:
+        type: string
+        format: uri
+  
+  license:
+    type: string
+    required: true
+    enum: ["MIT", "Apache-2.0", "GPL-3.0", "BSD-3-Clause", "Proprietary"]
+  
+  repository:
+    type: string
+    format: uri
+    required: false
+  
+  keywords:
+    type: array
+    items:
+      type: string
+    required: false
+  
+  compatibility:
+    type: object
+    required: true
+    properties:
+      sage_version:
+        type: string
+        pattern: "^\\d+\\.\\d+\\.\\d+$"
+      platform:
+        type: array
+        items:
+          type: string
+          enum: ["windows", "macos", "linux", "any"]

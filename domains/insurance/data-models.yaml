@@ -1,0 +1,970 @@
+# P&C Insurance Data Models
+# Core data structures for policy decision management system
+
+# ==========================================
+# POLICY DOMAIN MODELS
+# ==========================================
+
+Policy:
+  type: object
+  description: Core policy entity representing an insurance contract
+  properties:
+    policy_id:
+      type: string
+      format: uuid
+      description: Unique policy identifier
+    
+    policy_number:
+      type: string
+      pattern: "^[A-Z]{2}[0-9]{10}$"
+      description: Human-readable policy number
+    
+    status:
+      type: string
+      enum: [quoted, bound, active, suspended, cancelled, expired, renewed]
+      description: Current policy lifecycle status
+    
+    effective_date:
+      type: string
+      format: date
+      description: Policy coverage start date
+    
+    expiration_date:
+      type: string
+      format: date
+      description: Policy coverage end date
+    
+    line_of_business:
+      type: string
+      enum: [auto, home, umbrella, watercraft, motorcycle, renters]
+      description: Insurance product line
+    
+    underwriting_company:
+      type: string
+      description: Issuing insurance company
+    
+    producer:
+      $ref: '#/Producer'
+      description: Agent/broker information
+    
+    insured:
+      $ref: '#/Insured'
+      description: Primary insured party
+    
+    additional_insureds:
+      type: array
+      items:
+        $ref: '#/Insured'
+      description: Additional insured parties
+    
+    coverages:
+      type: array
+      items:
+        $ref: '#/Coverage'
+      description: Policy coverage details
+    
+    deductibles:
+      type: array
+      items:
+        $ref: '#/Deductible'
+      description: Applicable deductibles
+    
+    premium:
+      $ref: '#/Premium'
+      description: Premium calculation details
+    
+    risk_items:
+      type: array
+      items:
+        oneOf:
+          - $ref: '#/Vehicle'
+          - $ref: '#/Property'
+          - $ref: '#/Watercraft'
+      description: Insured items (vehicles, properties, etc.)
+    
+    endorsements:
+      type: array
+      items:
+        $ref: '#/Endorsement'
+      description: Policy modifications
+    
+    documents:
+      type: array
+      items:
+        $ref: '#/Document'
+      description: Associated policy documents
+    
+    audit_trail:
+      type: array
+      items:
+        $ref: '#/AuditEntry'
+      description: Policy change history
+    
+    metadata:
+      type: object
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        created_by:
+          type: string
+        version:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+
+# ==========================================
+# CUSTOMER DOMAIN MODELS
+# ==========================================
+
+Customer:
+  type: object
+  description: Customer master record
+  properties:
+    customer_id:
+      type: string
+      format: uuid
+      description: Unique customer identifier
+    
+    customer_type:
+      type: string
+      enum: [individual, business]
+      description: Type of customer entity
+    
+    personal_info:
+      $ref: '#/PersonalInfo'
+      description: Personal identification information
+    
+    contact_info:
+      $ref: '#/ContactInfo'
+      description: Contact details
+    
+    demographics:
+      $ref: '#/Demographics'
+      description: Demographic information
+    
+    financial_info:
+      $ref: '#/FinancialInfo'
+      description: Financial profile
+    
+    relationships:
+      type: array
+      items:
+        $ref: '#/Relationship'
+      description: Related parties
+    
+    preferences:
+      $ref: '#/CustomerPreferences'
+      description: Communication and service preferences
+    
+    loyalty_info:
+      $ref: '#/LoyaltyInfo'
+      description: Customer loyalty program data
+    
+    risk_profile:
+      $ref: '#/RiskProfile'
+      description: Aggregated risk information
+
+Insured:
+  type: object
+  allOf:
+    - $ref: '#/Customer'
+    - type: object
+      properties:
+        insurable_interest:
+          type: string
+          description: Relationship to insured property
+        driver_info:
+          $ref: '#/DriverInfo'
+          description: Driving-specific information
+
+PersonalInfo:
+  type: object
+  properties:
+    first_name:
+      type: string
+      maxLength: 50
+    middle_name:
+      type: string
+      maxLength: 50
+    last_name:
+      type: string
+      maxLength: 50
+    suffix:
+      type: string
+      enum: [Jr, Sr, II, III, IV]
+    date_of_birth:
+      type: string
+      format: date
+    ssn:
+      type: string
+      pattern: "^[0-9]{3}-[0-9]{2}-[0-9]{4}$"
+      description: Encrypted SSN
+    gender:
+      type: string
+      enum: [male, female, other, prefer_not_to_say]
+    marital_status:
+      type: string
+      enum: [single, married, divorced, widowed, separated]
+
+ContactInfo:
+  type: object
+  properties:
+    primary_address:
+      $ref: '#/Address'
+    mailing_address:
+      $ref: '#/Address'
+    phone_numbers:
+      type: array
+      items:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [home, work, mobile, fax]
+          number:
+            type: string
+            pattern: "^\\+?[1-9]\\d{1,14}$"
+          is_primary:
+            type: boolean
+    email_addresses:
+      type: array
+      items:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [personal, work]
+          email:
+            type: string
+            format: email
+          is_primary:
+            type: boolean
+
+# ==========================================
+# RISK DOMAIN MODELS
+# ==========================================
+
+RiskProfile:
+  type: object
+  description: Comprehensive risk assessment profile
+  properties:
+    overall_score:
+      type: number
+      minimum: 0
+      maximum: 1000
+      description: Composite risk score
+    
+    risk_factors:
+      type: array
+      items:
+        $ref: '#/RiskFactor'
+      description: Individual risk factors
+    
+    credit_score:
+      type: integer
+      minimum: 300
+      maximum: 850
+      description: Credit bureau score
+    
+    insurance_score:
+      type: integer
+      minimum: 200
+      maximum: 997
+      description: Insurance-specific score
+    
+    claims_history:
+      $ref: '#/ClaimsHistory'
+      description: Historical claims data
+    
+    violation_history:
+      $ref: '#/ViolationHistory'
+      description: Traffic violations and incidents
+    
+    external_data:
+      type: array
+      items:
+        $ref: '#/ExternalDataPoint'
+      description: Third-party risk data
+
+RiskFactor:
+  type: object
+  properties:
+    factor_id:
+      type: string
+    category:
+      type: string
+      enum: [demographic, geographic, behavioral, financial, property, vehicle]
+    name:
+      type: string
+    value:
+      type: number
+    weight:
+      type: number
+    impact:
+      type: string
+      enum: [positive, negative, neutral]
+    source:
+      type: string
+    confidence:
+      type: number
+      minimum: 0
+      maximum: 1
+
+Vehicle:
+  type: object
+  description: Vehicle risk item
+  properties:
+    vehicle_id:
+      type: string
+      format: uuid
+    vin:
+      type: string
+      pattern: "^[A-HJ-NPR-Z0-9]{17}$"
+    year:
+      type: integer
+      minimum: 1900
+      maximum: 2030
+    make:
+      type: string
+    model:
+      type: string
+    trim:
+      type: string
+    body_style:
+      type: string
+      enum: [sedan, suv, truck, van, convertible, coupe, wagon, motorcycle]
+    engine:
+      type: object
+      properties:
+        cylinders:
+          type: integer
+        displacement:
+          type: number
+        fuel_type:
+          type: string
+          enum: [gasoline, diesel, hybrid, electric, hydrogen]
+    safety_features:
+      type: array
+      items:
+        type: string
+        enum: [abs, airbags, backup_camera, blind_spot, lane_departure, adaptive_cruise]
+    anti_theft:
+      type: array
+      items:
+        type: string
+        enum: [alarm, immobilizer, tracking, vin_etching]
+    usage:
+      type: object
+      properties:
+        primary_use:
+          type: string
+          enum: [pleasure, commute, business, farm]
+        annual_mileage:
+          type: integer
+        commute_miles:
+          type: integer
+        garage_location:
+          $ref: '#/Address'
+    ownership:
+      type: object
+      properties:
+        owned_type:
+          type: string
+          enum: [owned, leased, financed]
+        purchase_date:
+          type: string
+          format: date
+        purchase_price:
+          type: number
+        lienholder:
+          $ref: '#/Lienholder'
+
+Property:
+  type: object
+  description: Property risk item
+  properties:
+    property_id:
+      type: string
+      format: uuid
+    address:
+      $ref: '#/Address'
+    property_type:
+      type: string
+      enum: [single_family, condo, townhouse, manufactured, duplex, apartment]
+    occupancy:
+      type: string
+      enum: [primary, secondary, seasonal, rental, vacant]
+    construction:
+      type: object
+      properties:
+        year_built:
+          type: integer
+        square_footage:
+          type: integer
+        stories:
+          type: integer
+        basement:
+          type: boolean
+        construction_type:
+          type: string
+          enum: [frame, masonry, steel, concrete]
+        roof_type:
+          type: string
+          enum: [asphalt_shingle, tile, metal, slate, wood]
+        roof_age:
+          type: integer
+    protection:
+      type: object
+      properties:
+        security_system:
+          type: string
+          enum: [none, local, central, smart]
+        fire_alarm:
+          type: string
+          enum: [none, smoke_detectors, central]
+        sprinkler:
+          type: boolean
+        distance_fire_station:
+          type: number
+        distance_hydrant:
+          type: number
+    hazards:
+      type: object
+      properties:
+        flood_zone:
+          type: string
+        earthquake_zone:
+          type: string
+        wildfire_risk:
+          type: string
+          enum: [low, moderate, high, extreme]
+        wind_zone:
+          type: string
+    valuation:
+      type: object
+      properties:
+        replacement_cost:
+          type: number
+        actual_cash_value:
+          type: number
+        land_value:
+          type: number
+        personal_property:
+          type: number
+
+# ==========================================
+# CLAIM DOMAIN MODELS
+# ==========================================
+
+Claim:
+  type: object
+  description: Insurance claim record
+  properties:
+    claim_id:
+      type: string
+      format: uuid
+    claim_number:
+      type: string
+    policy_id:
+      type: string
+      format: uuid
+    status:
+      type: string
+      enum: [reported, investigating, approved, denied, closed, reopened, litigated]
+    type:
+      type: string
+      enum: [collision, comprehensive, liability, property_damage, theft, weather]
+    date_of_loss:
+      type: string
+      format: date-time
+    date_reported:
+      type: string
+      format: date-time
+    description:
+      type: string
+      maxLength: 5000
+    location:
+      $ref: '#/Address'
+    parties_involved:
+      type: array
+      items:
+        $ref: '#/ClaimParty'
+    damages:
+      type: array
+      items:
+        $ref: '#/Damage'
+    injuries:
+      type: array
+      items:
+        $ref: '#/Injury'
+    payments:
+      type: array
+      items:
+        $ref: '#/ClaimPayment'
+    reserves:
+      type: array
+      items:
+        $ref: '#/Reserve'
+    documentation:
+      type: array
+      items:
+        $ref: '#/Document'
+    investigation:
+      $ref: '#/Investigation'
+    settlement:
+      $ref: '#/Settlement'
+
+ClaimsHistory:
+  type: object
+  properties:
+    total_claims:
+      type: integer
+    claims_last_3_years:
+      type: integer
+    claims_last_5_years:
+      type: integer
+    total_paid:
+      type: number
+    at_fault_accidents:
+      type: integer
+    not_at_fault_accidents:
+      type: integer
+    comprehensive_claims:
+      type: integer
+    claim_details:
+      type: array
+      items:
+        $ref: '#/ClaimSummary'
+
+ClaimSummary:
+  type: object
+  properties:
+    claim_date:
+      type: string
+      format: date
+    claim_type:
+      type: string
+    amount_paid:
+      type: number
+    at_fault:
+      type: boolean
+    description:
+      type: string
+
+# ==========================================
+# COVERAGE & RATING MODELS
+# ==========================================
+
+Coverage:
+  type: object
+  description: Insurance coverage details
+  properties:
+    coverage_id:
+      type: string
+    coverage_code:
+      type: string
+    coverage_name:
+      type: string
+    coverage_type:
+      type: string
+      enum: [liability, collision, comprehensive, medical, uninsured_motorist, property, personal_property]
+    limits:
+      type: object
+      properties:
+        per_person:
+          type: number
+        per_accident:
+          type: number
+        property_damage:
+          type: number
+        combined_single_limit:
+          type: number
+    deductible:
+      type: number
+    premium:
+      type: number
+    is_mandatory:
+      type: boolean
+    territory:
+      type: string
+    forms:
+      type: array
+      items:
+        type: string
+
+Premium:
+  type: object
+  description: Premium calculation details
+  properties:
+    base_premium:
+      type: number
+    total_premium:
+      type: number
+    payment_plan:
+      type: string
+      enum: [annual, semi_annual, quarterly, monthly]
+    discounts:
+      type: array
+      items:
+        $ref: '#/Discount'
+    surcharges:
+      type: array
+      items:
+        $ref: '#/Surcharge'
+    taxes_fees:
+      type: array
+      items:
+        $ref: '#/TaxFee'
+    installments:
+      type: array
+      items:
+        $ref: '#/Installment'
+
+Discount:
+  type: object
+  properties:
+    discount_id:
+      type: string
+    discount_code:
+      type: string
+    description:
+      type: string
+    amount:
+      type: number
+    percentage:
+      type: number
+    type:
+      type: string
+      enum: [multi_policy, safe_driver, good_student, senior, military, loyalty, early_quote]
+    applied_to:
+      type: array
+      items:
+        type: string
+
+RatingFactors:
+  type: object
+  description: Factors used in premium calculation
+  properties:
+    base_rate:
+      type: number
+    territory_factor:
+      type: number
+    classification_factor:
+      type: number
+    experience_modifier:
+      type: number
+    credit_factor:
+      type: number
+    vehicle_factors:
+      type: object
+      properties:
+        age_factor:
+          type: number
+        symbol_factor:
+          type: number
+        safety_factor:
+          type: number
+    driver_factors:
+      type: object
+      properties:
+        age_factor:
+          type: number
+        experience_factor:
+          type: number
+        violation_factor:
+          type: number
+    property_factors:
+      type: object
+      properties:
+        protection_class:
+          type: integer
+        construction_factor:
+          type: number
+        age_factor:
+          type: number
+
+# ==========================================
+# BUSINESS RULES & COMPLIANCE MODELS
+# ==========================================
+
+UnderwritingDecision:
+  type: object
+  description: Underwriting decision record
+  properties:
+    decision_id:
+      type: string
+      format: uuid
+    policy_id:
+      type: string
+      format: uuid
+    decision_type:
+      type: string
+      enum: [new_business, renewal, endorsement, reinstatement]
+    status:
+      type: string
+      enum: [approved, declined, referred, conditional]
+    tier:
+      type: string
+      enum: [preferred, standard, non_standard, high_risk]
+    rules_executed:
+      type: array
+      items:
+        $ref: '#/RuleExecution'
+    conditions:
+      type: array
+      items:
+        type: string
+    exclusions:
+      type: array
+      items:
+        type: string
+    referral_reasons:
+      type: array
+      items:
+        type: string
+    decision_factors:
+      type: array
+      items:
+        $ref: '#/DecisionFactor'
+    override:
+      $ref: '#/Override'
+    timestamp:
+      type: string
+      format: date-time
+
+RuleExecution:
+  type: object
+  properties:
+    rule_id:
+      type: string
+    rule_name:
+      type: string
+    version:
+      type: string
+    result:
+      type: string
+      enum: [pass, fail, not_applicable]
+    message:
+      type: string
+    execution_time_ms:
+      type: integer
+
+ComplianceCheck:
+  type: object
+  description: Regulatory compliance verification
+  properties:
+    check_id:
+      type: string
+      format: uuid
+    state:
+      type: string
+      pattern: "^[A-Z]{2}$"
+    regulation_type:
+      type: string
+      enum: [form, rate, underwriting, claims, disclosure]
+    regulation_code:
+      type: string
+    status:
+      type: string
+      enum: [compliant, non_compliant, warning, not_applicable]
+    details:
+      type: string
+    remediation:
+      type: string
+    filed_date:
+      type: string
+      format: date
+    approval_date:
+      type: string
+      format: date
+    expiration_date:
+      type: string
+      format: date
+
+# ==========================================
+# SUPPORTING MODELS
+# ==========================================
+
+Address:
+  type: object
+  properties:
+    address_line_1:
+      type: string
+      maxLength: 100
+    address_line_2:
+      type: string
+      maxLength: 100
+    city:
+      type: string
+      maxLength: 50
+    state:
+      type: string
+      pattern: "^[A-Z]{2}$"
+    zip_code:
+      type: string
+      pattern: "^[0-9]{5}(-[0-9]{4})?$"
+    county:
+      type: string
+    country:
+      type: string
+      default: "US"
+    latitude:
+      type: number
+    longitude:
+      type: number
+    geocode_accuracy:
+      type: string
+      enum: [rooftop, street, zip, city, unknown]
+
+Document:
+  type: object
+  properties:
+    document_id:
+      type: string
+      format: uuid
+    document_type:
+      type: string
+      enum: [policy, declaration, invoice, claim_form, photo, correspondence, proof, legal]
+    name:
+      type: string
+    description:
+      type: string
+    file_path:
+      type: string
+    mime_type:
+      type: string
+    size_bytes:
+      type: integer
+    created_date:
+      type: string
+      format: date-time
+    expiration_date:
+      type: string
+      format: date
+    metadata:
+      type: object
+      additionalProperties: true
+
+AuditEntry:
+  type: object
+  properties:
+    audit_id:
+      type: string
+      format: uuid
+    timestamp:
+      type: string
+      format: date-time
+    user_id:
+      type: string
+    action:
+      type: string
+      enum: [create, update, delete, view, approve, reject, override]
+    entity_type:
+      type: string
+    entity_id:
+      type: string
+    changes:
+      type: array
+      items:
+        type: object
+        properties:
+          field:
+            type: string
+          old_value:
+            type: string
+          new_value:
+            type: string
+    ip_address:
+      type: string
+    user_agent:
+      type: string
+    session_id:
+      type: string
+
+# ==========================================
+# INTEGRATION MODELS
+# ==========================================
+
+ExternalDataPoint:
+  type: object
+  properties:
+    source:
+      type: string
+      enum: [lexisnexis, verisk, transunion, experian, clue, mvr, cue]
+    data_type:
+      type: string
+    timestamp:
+      type: string
+      format: date-time
+    raw_score:
+      type: number
+    normalized_score:
+      type: number
+    attributes:
+      type: object
+      additionalProperties: true
+    confidence:
+      type: number
+      minimum: 0
+      maximum: 1
+
+APIResponse:
+  type: object
+  properties:
+    request_id:
+      type: string
+      format: uuid
+    timestamp:
+      type: string
+      format: date-time
+    status:
+      type: string
+      enum: [success, error, partial]
+    data:
+      type: object
+    errors:
+      type: array
+      items:
+        $ref: '#/Error'
+    warnings:
+      type: array
+      items:
+        $ref: '#/Warning'
+    metadata:
+      type: object
+      properties:
+        version:
+          type: string
+        processing_time_ms:
+          type: integer
+        rate_limit_remaining:
+          type: integer
+
+Error:
+  type: object
+  properties:
+    code:
+      type: string
+    message:
+      type: string
+    field:
+      type: string
+    details:
+      type: object
+
+Warning:
+  type: object
+  properties:
+    code:
+      type: string
+    message:
+      type: string
+    severity:
+      type: string
+      enum: [low, medium, high]

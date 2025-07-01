@@ -1,0 +1,592 @@
+# P&C Insurance Compliance Matrix
+# State-specific regulations and NAIC requirements
+
+# ==========================================
+# STATE REGULATORY MATRIX
+# ==========================================
+
+state_regulations:
+  # Major State Regulations
+  california:
+    state_code: CA
+    department: California Department of Insurance
+    key_regulations:
+      auto_insurance:
+        minimum_liability:
+          bodily_injury_per_person: 15000
+          bodily_injury_per_accident: 30000
+          property_damage: 5000
+        required_coverages:
+          - bodily_injury_liability
+          - property_damage_liability
+        optional_coverages:
+          - uninsured_motorist
+          - underinsured_motorist
+          - medical_payments
+          - comprehensive
+          - collision
+        
+        proposition_103:
+          description: Rate regulation and prior approval
+          requirements:
+            - prior_approval_rates: true
+            - rate_rollback_provision: true
+            - intervenor_process: true
+            - good_driver_discount: mandatory
+            - discount_percentage: 20
+        
+        low_cost_auto:
+          description: California Low Cost Automobile Insurance Program
+          eligibility_requirements:
+            - income_qualified: true
+            - good_driver_record: true
+            - vehicle_value_limit: 25000
+      
+      homeowners_insurance:
+        fair_plan:
+          description: FAIR Plan for high-risk properties
+          trigger_conditions:
+            - wildfire_zones
+            - prior_cancellations
+            - high_risk_areas
+        
+        wildfire_regulations:
+          sb_824:
+            description: Wildfire risk model requirements
+            requirements:
+              - wildfire_risk_score: mandatory
+              - mitigation_credit: required
+              - public_model_access: true
+          
+          moratorium_rules:
+            description: Non-renewal moratorium after wildfire
+            duration_days: 365
+            trigger: declared_disaster
+        
+        earthquake_disclosure:
+          mandatory_offer: true
+          written_disclosure: required
+          ceu_brochure: required
+    
+    filing_requirements:
+      rate_filings:
+        type: prior_approval
+        review_period_days: 60
+        public_comment_period: true
+        supporting_data:
+          - actuarial_memorandum
+          - loss_experience
+          - expense_data
+          - profit_provision
+      
+      form_filings:
+        type: prior_approval
+        review_period_days: 60
+        requirements:
+          - readability_score
+          - plain_language
+          - spanish_translation
+    
+    consumer_protections:
+      cancellation_notice:
+        non_payment: 10_days
+        underwriting_reasons: 30_days
+        non_renewal: 75_days
+      
+      claim_handling:
+        acknowledgment_days: 15
+        decision_days: 40
+        payment_days: 30
+      
+      unfair_practices:
+        prohibited_actions:
+          - zip_code_underwriting
+          - occupation_rating
+          - education_level_rating
+  
+  new_york:
+    state_code: NY
+    department: New York Department of Financial Services
+    key_regulations:
+      auto_insurance:
+        minimum_liability:
+          bodily_injury_per_person: 25000
+          bodily_injury_per_accident: 50000
+          property_damage: 10000
+          uninsured_motorist: 25000/50000
+        
+        no_fault_coverage:
+          personal_injury_protection: 50000
+          mandatory: true
+          covers:
+            - medical_expenses
+            - lost_wages_80_percent
+            - essential_services
+            - death_benefit
+        
+        supplementary_coverages:
+          spousal_liability: mandatory
+          supplementary_uninsured: mandatory
+      
+      homeowners_insurance:
+        coastal_regulations:
+          separate_wind_deductible: allowed
+          percentage_based: true
+          trigger: hurricane_warning
+        
+        discrimination_prohibition:
+          reg_95:
+            prohibited_factors:
+              - breed_of_dog
+              - prior_dog_bite_claims
+              - domestic_animals
+      
+      regulation_requirements:
+        reg_64:
+          description: Claims handling standards
+          requirements:
+            - prompt_investigation
+            - fair_settlement
+            - written_explanation
+        
+        reg_129:
+          description: Rate filing requirements
+          flex_rating_band: 5_percent
+          file_and_use_threshold: true
+    
+    filing_requirements:
+      rate_filings:
+        type: flex_rating
+        flex_band_percentage: 5
+        prior_approval_outside_band: true
+      
+      cyber_insurance:
+        risk_framework: required
+        minimum_standards: true
+        reporting_requirements: annual
+  
+  florida:
+    state_code: FL
+    department: Florida Office of Insurance Regulation
+    key_regulations:
+      auto_insurance:
+        minimum_coverage:
+          personal_injury_protection: 10000
+          property_damage_liability: 10000
+        
+        pip_requirements:
+          coverage_percentage: 80
+          deductible_options: [0, 500, 1000]
+          medical_fee_schedule: true
+      
+      homeowners_insurance:
+        hurricane_regulations:
+          separate_deductible: mandatory
+          percentage_options: [2, 5, 10]
+          trigger: hurricane_watch
+        
+        citizens_property:
+          insurer_of_last_resort: true
+          depopulation_efforts: ongoing
+          rate_glide_path: true
+        
+        sinkhole_coverage:
+          catastrophic_coverage: mandatory
+          optional_coverage: available
+          inspection_requirements: true
+        
+        flood_disclosure:
+          federal_flood: mandatory_disclosure
+          private_flood: encouraged
+      
+      market_conduct:
+        consumer_choice:
+          agent_disclosure: required
+          company_appointments: transparent
+        
+        claim_mediation:
+          program: mandatory_offer
+          threshold: 500
+          neutral_mediator: state_provided
+    
+    filing_requirements:
+      rate_filings:
+        type: file_and_use
+        implementation_wait: 90_days
+        actuarial_certification: required
+      
+      modeling_requirements:
+        hurricane_models:
+          commission_approval: required
+          public_model: must_consider
+          sensitivity_testing: mandatory
+  
+  texas:
+    state_code: TX
+    department: Texas Department of Insurance
+    key_regulations:
+      auto_insurance:
+        minimum_liability:
+          bodily_injury_per_person: 30000
+          bodily_injury_per_accident: 60000
+          property_damage: 25000
+        
+        named_driver_policies:
+          allowed: true
+          disclosure: prominent
+          exclusions: clearly_stated
+      
+      homeowners_insurance:
+        benchmark_rates:
+          annual_publication: true
+          comparison_required: true
+          deviation_explanation: needed
+        
+        weather_related:
+          hail_deductibles: allowed
+          percentage_based: true
+          cosmetic_damage: excludable
+        
+        lloyd's_plans:
+          county_mutual: allowed
+          reciprocal_exchanges: permitted
+      
+      filing_requirements:
+        type: file_and_use
+        predictive_models:
+          transparency: required
+          unfair_discrimination: prohibited
+          testing_requirements: true
+    
+    consumer_protections:
+      bill_of_rights:
+        fair_treatment: guaranteed
+        complaint_process: established
+        public_information: accessible
+      
+      mediation_program:
+        eligibility: broad
+        state_funded: true
+        binding_option: available
+
+# ==========================================
+# NAIC MODEL REGULATIONS
+# ==========================================
+
+naic_requirements:
+  model_laws:
+    unfair_trade_practices:
+      model_number: 880
+      description: Unfair Trade Practices Act
+      key_provisions:
+        - misrepresentation
+        - false_advertising
+        - defamation
+        - boycott_coercion
+        - unfair_discrimination
+        - rebating
+        - unfair_claim_settlement
+    
+    rate_regulation:
+      model_number: 1775
+      description: Property and Casualty Model Rating Law
+      principles:
+        - rates_not_excessive
+        - rates_not_inadequate
+        - rates_not_unfairly_discriminatory
+      
+      filing_options:
+        - prior_approval
+        - file_and_use
+        - use_and_file
+        - flex_rating
+        - no_file
+    
+    market_conduct:
+      model_number: 693
+      description: Market Conduct Surveillance Model Law
+      requirements:
+        - market_analysis
+        - examination_standards
+        - enforcement_actions
+        - data_collection
+  
+  data_reporting:
+    statistical_reporting:
+      description: Statistical data reporting requirements
+      data_elements:
+        - premium_volume
+        - loss_experience
+        - expense_data
+        - policy_counts
+        - territory_data
+      
+      reporting_frequency:
+        - quarterly: financial_data
+        - annually: detailed_statistics
+        - as_needed: special_calls
+    
+    mcas_reporting:
+      description: Market Conduct Annual Statement
+      lines_of_business:
+        - private_passenger_auto
+        - homeowners
+        - life
+        - annuity
+        - health
+      
+      data_points:
+        - complaints
+        - lawsuits
+        - claims_metrics
+        - underwriting_metrics
+        - policyholder_service
+  
+  financial_requirements:
+    risk_based_capital:
+      description: RBC requirements for P&C insurers
+      action_levels:
+        - company_action: 200_percent
+        - regulatory_action: 150_percent
+        - authorized_control: 100_percent
+        - mandatory_control: 70_percent
+    
+    orsa_requirements:
+      description: Own Risk and Solvency Assessment
+      threshold: 500_million_premium
+      components:
+        - risk_identification
+        - risk_assessment
+        - risk_monitoring
+        - capital_adequacy
+        - stress_testing
+    
+    holding_company:
+      model_number: 440
+      description: Insurance Holding Company System
+      requirements:
+        - registration_statement
+        - transaction_approval
+        - enterprise_risk_report
+        - corporate_governance
+
+# ==========================================
+# FEDERAL REGULATIONS
+# ==========================================
+
+federal_requirements:
+  terrorism_risk:
+    tria:
+      description: Terrorism Risk Insurance Act
+      requirements:
+        - make_available: mandatory
+        - disclosure: required
+        - federal_share: specified
+        - trigger_amount: 200_million
+        - deductible: 20_percent
+    
+  flood_insurance:
+    nfip_compliance:
+      description: National Flood Insurance Program
+      requirements:
+        - mandatory_purchase: flood_zones
+        - waiting_period: 30_days
+        - coverage_limits: specified
+        - rate_maps: FEMA_determined
+    
+    private_flood:
+      biggert_waters:
+        description: Accept private flood insurance
+        requirements:
+          - compliance_criteria
+          - definition_met
+          - discretionary_acceptance
+  
+  data_privacy:
+    glba:
+      description: Gramm-Leach-Bliley Act
+      requirements:
+        - privacy_notice: initial_and_annual
+        - opt_out_rights: required
+        - safeguards_rule: implemented
+        - pretexting_protection: enforced
+    
+    fcra:
+      description: Fair Credit Reporting Act
+      requirements:
+        - permissible_purpose: documented
+        - adverse_action: notice_required
+        - accuracy: disputes_investigated
+        - data_security: breaches_reported
+    
+    tcpa:
+      description: Telephone Consumer Protection Act
+      requirements:
+        - consent: prior_express_written
+        - autodialer: restrictions
+        - do_not_call: compliance
+        - time_restrictions: observed
+
+# ==========================================
+# SPECIAL COMPLIANCE AREAS
+# ==========================================
+
+special_compliance:
+  usage_based_insurance:
+    telematics:
+      privacy_requirements:
+        - consent: explicit
+        - data_types: disclosed
+        - retention: limited
+        - sharing: restricted
+      
+      rate_application:
+        - actuarial_support: required
+        - discount_only: some_states
+        - surcharge_allowed: other_states
+  
+  cyber_insurance:
+    ny_dfs_framework:
+      requirements:
+        - risk_assessment: mandatory
+        - minimum_practices: specified
+        - board_reporting: annual
+        - incident_response: tested
+    
+    data_breach_notification:
+      state_variations:
+        - timing: 30_to_90_days
+        - threshold: varies
+        - notification_method: specified
+        - content_requirements: detailed
+  
+  insurtech_compliance:
+    digital_distribution:
+      licensing:
+        - producer_licenses: required
+        - non_resident: reciprocity
+        - limited_lines: available
+      
+      electronic_delivery:
+        - consent: affirmative
+        - hardware_software: verified
+        - withdrawal_rights: clear
+        - paper_option: available
+    
+    ai_ml_usage:
+      fairness_requirements:
+        - testing: discrimination
+        - transparency: explainable
+        - governance: documented
+        - appeals: human_review
+
+# ==========================================
+# COMPLIANCE MONITORING
+# ==========================================
+
+compliance_monitoring:
+  internal_audit:
+    frequency:
+      high_risk_areas: quarterly
+      standard_areas: annually
+      emerging_risks: as_needed
+    
+    scope:
+      - rate_compliance
+      - form_compliance
+      - claim_practices
+      - underwriting_standards
+      - privacy_security
+      - consumer_complaints
+  
+  regulatory_exams:
+    market_conduct:
+      cycle: 3_to_5_years
+      areas:
+        - operations_management
+        - complaint_handling
+        - marketing_sales
+        - producer_licensing
+        - policyholder_service
+        - underwriting_rating
+        - claims
+    
+    financial_exams:
+      cycle: 3_to_5_years
+      coordination: zone_based
+      areas:
+        - financial_statements
+        - risk_assessment
+        - corporate_governance
+        - related_parties
+        - reinsurance
+  
+  reporting_calendar:
+    quarterly:
+      - financial_statements
+      - rbc_calculation
+      - complaint_logs
+    
+    annual:
+      - market_conduct_statement
+      - orsa_summary
+      - corporate_governance
+      - actuarial_opinions
+    
+    as_needed:
+      - material_transactions
+      - dividend_declarations
+      - officer_changes
+      - cybersecurity_events
+
+# ==========================================
+# PENALTIES AND ENFORCEMENT
+# ==========================================
+
+enforcement_matrix:
+  violation_categories:
+    minor:
+      examples:
+        - late_filing
+        - clerical_errors
+        - first_offense
+      penalties:
+        - warning_letter
+        - corrective_action
+        - fine: up_to_10000
+    
+    moderate:
+      examples:
+        - pattern_violations
+        - consumer_harm
+        - negligent_practices
+      penalties:
+        - formal_order
+        - fine: 10000_to_100000
+        - enhanced_reporting
+    
+    severe:
+      examples:
+        - willful_violations
+        - fraud
+        - significant_harm
+      penalties:
+        - license_suspension
+        - license_revocation
+        - fine: over_100000
+        - criminal_referral
+  
+  mitigation_factors:
+    positive:
+      - self_reporting
+      - prompt_correction
+      - cooperation
+      - good_faith_effort
+      - robust_compliance_program
+    
+    negative:
+      - concealment
+      - repeat_offender
+      - consumer_harm
+      - willful_conduct
+      - inadequate_response

@@ -1,0 +1,557 @@
+# SAGE Agent Interface Definition
+# Version: 1.0.0
+# This interface defines the contract that all SAGE agents must implement
+
+interface:
+  name: IAgent
+  version: "1.0.0"
+  description: |
+    Defines the contract for SAGE agents that perform specific tasks,
+    coordinate activities, and communicate within the SAGE ecosystem.
+    Agents are the primary execution units that leverage language and
+    domain plugins to accomplish goals.
+
+# Agent manifest structure
+manifest:
+  required_fields:
+    id:
+      type: string
+      description: "Unique identifier for the agent instance"
+      pattern: "^[a-z]+(-[a-z]+)*-[a-f0-9]{8}$"
+      example: "requirements-analyzer-a1b2c3d4"
+    
+    name:
+      type: string
+      description: "Human-readable name for the agent"
+      example: "Requirements Analyzer Agent"
+    
+    type:
+      type: string
+      description: "Agent type classification"
+      enum: ["analyzer", "generator", "validator", "coordinator", "specialist", "monitor"]
+    
+    version:
+      type: string
+      description: "Agent version"
+      pattern: "^\\d+\\.\\d+\\.\\d+$"
+    
+    capabilities:
+      type: array
+      description: "List of capabilities this agent provides"
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: "Capability identifier"
+          description:
+            type: string
+          input_schema:
+            type: object
+            description: "JSON Schema for capability input"
+          output_schema:
+            type: object
+            description: "JSON Schema for capability output"
+          constraints:
+            type: object
+            properties:
+              timeout_ms:
+                type: integer
+                minimum: 100
+                maximum: 300000
+              max_retries:
+                type: integer
+                minimum: 0
+                maximum: 5
+              requires_confirmation:
+                type: boolean
+                default: false
+    
+    dependencies:
+      type: object
+      description: "Agent dependencies"
+      properties:
+        language_plugins:
+          type: array
+          description: "Required language plugins"
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              min_version:
+                type: string
+              features:
+                type: array
+                items:
+                  type: string
+        
+        domain_plugins:
+          type: array
+          description: "Required domain plugins"
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              min_version:
+                type: string
+              features:
+                type: array
+                items:
+                  type: string
+        
+        other_agents:
+          type: array
+          description: "Other agents this agent may communicate with"
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              capabilities:
+                type: array
+                items:
+                  type: string
+              optional:
+                type: boolean
+                default: false
+    
+    resource_requirements:
+      type: object
+      description: "Resource requirements for the agent"
+      properties:
+        memory_mb:
+          type: integer
+          minimum: 128
+          description: "Minimum memory in MB"
+        
+        cpu_cores:
+          type: number
+          minimum: 0.1
+          description: "CPU cores required"
+        
+        gpu_required:
+          type: boolean
+          default: false
+        
+        network_access:
+          type: boolean
+          default: false
+        
+        storage_mb:
+          type: integer
+          minimum: 0
+          description: "Persistent storage in MB"
+
+# Core agent interface methods
+required_methods:
+  initialize:
+    description: "Initialize the agent with configuration and context"
+    parameters:
+      - name: config
+        type: object
+        description: "Agent configuration"
+        properties:
+          agent_id:
+            type: string
+          communication_bus:
+            type: object
+          plugins:
+            type: object
+          context:
+            type: object
+    returns:
+      type: object
+      properties:
+        success:
+          type: boolean
+        agent_info:
+          type: object
+          properties:
+            id:
+              type: string
+            capabilities:
+              type: array
+            status:
+              type: string
+              enum: ["ready", "initializing", "error"]
+        error:
+          type: string
+          optional: true
+  
+  execute_capability:
+    description: "Execute a specific capability"
+    parameters:
+      - name: capability_name
+        type: string
+        description: "Name of the capability to execute"
+      - name: input
+        type: object
+        description: "Input data for the capability"
+      - name: context
+        type: object
+        description: "Execution context"
+        properties:
+          request_id:
+            type: string
+          priority:
+            type: string
+            enum: ["low", "normal", "high", "critical"]
+          timeout_ms:
+            type: integer
+          metadata:
+            type: object
+    returns:
+      type: object
+      properties:
+        success:
+          type: boolean
+        output:
+          type: object
+          description: "Capability execution output"
+        execution_time_ms:
+          type: integer
+        metadata:
+          type: object
+        error:
+          type: object
+          optional: true
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+  
+  get_status:
+    description: "Get current agent status and health"
+    parameters: []
+    returns:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ["ready", "busy", "error", "shutdown"]
+        health:
+          type: object
+          properties:
+            healthy:
+              type: boolean
+            last_heartbeat:
+              type: string
+              format: date-time
+            metrics:
+              type: object
+              properties:
+                tasks_completed:
+                  type: integer
+                tasks_failed:
+                  type: integer
+                average_execution_time_ms:
+                  type: number
+                uptime_seconds:
+                  type: integer
+        current_tasks:
+          type: array
+          items:
+            type: object
+            properties:
+              task_id:
+                type: string
+              capability:
+                type: string
+              status:
+                type: string
+              started_at:
+                type: string
+                format: date-time
+  
+  handle_message:
+    description: "Handle incoming messages from other agents or the communication bus"
+    parameters:
+      - name: message
+        type: object
+        description: "Incoming message"
+        properties:
+          id:
+            type: string
+          type:
+            type: string
+            enum: ["request", "response", "event", "command"]
+          sender:
+            type: object
+            properties:
+              agent_id:
+                type: string
+              agent_type:
+                type: string
+          payload:
+            type: object
+          metadata:
+            type: object
+    returns:
+      type: object
+      properties:
+        acknowledged:
+          type: boolean
+        response:
+          type: object
+          optional: true
+          properties:
+            type:
+              type: string
+            payload:
+              type: object
+        error:
+          type: string
+          optional: true
+  
+  shutdown:
+    description: "Gracefully shutdown the agent"
+    parameters:
+      - name: options
+        type: object
+        properties:
+          force:
+            type: boolean
+            default: false
+          timeout_ms:
+            type: integer
+            default: 30000
+          save_state:
+            type: boolean
+            default: true
+    returns:
+      type: object
+      properties:
+        success:
+          type: boolean
+        state_saved:
+          type: boolean
+        cleanup_completed:
+          type: boolean
+        error:
+          type: string
+          optional: true
+
+# Communication protocols
+communication:
+  protocols:
+    message_format:
+      description: "Standard message format for agent communication"
+      schema:
+        type: object
+        required: ["id", "timestamp", "type", "sender", "payload"]
+        properties:
+          id:
+            type: string
+            format: uuid
+          timestamp:
+            type: string
+            format: date-time
+          type:
+            type: string
+            enum: ["request", "response", "event", "command", "notification"]
+          sender:
+            type: object
+            properties:
+              agent_id:
+                type: string
+              agent_type:
+                type: string
+              capabilities:
+                type: array
+                items:
+                  type: string
+          recipient:
+            type: object
+            optional: true
+            properties:
+              agent_id:
+                type: string
+              agent_type:
+                type: string
+          payload:
+            type: object
+          correlation_id:
+            type: string
+            optional: true
+            description: "For request-response correlation"
+          priority:
+            type: string
+            enum: ["low", "normal", "high", "critical"]
+            default: "normal"
+          ttl_ms:
+            type: integer
+            description: "Time to live in milliseconds"
+            minimum: 0
+          metadata:
+            type: object
+            optional: true
+  
+  patterns:
+    request_response:
+      description: "Synchronous request-response pattern"
+      timeout_ms: 30000
+      retry_policy:
+        max_retries: 3
+        backoff_strategy: "exponential"
+    
+    publish_subscribe:
+      description: "Event-based publish-subscribe pattern"
+      topics:
+        - "agent.status.*"
+        - "task.completed.*"
+        - "error.*"
+        - "metrics.*"
+    
+    command:
+      description: "Command pattern for agent control"
+      commands:
+        - "start"
+        - "stop"
+        - "pause"
+        - "resume"
+        - "reconfigure"
+
+# Agent lifecycle
+lifecycle:
+  states:
+    - name: "created"
+      description: "Agent instance created but not initialized"
+    - name: "initializing"
+      description: "Agent is loading configuration and dependencies"
+    - name: "ready"
+      description: "Agent is ready to accept tasks"
+    - name: "busy"
+      description: "Agent is processing tasks"
+    - name: "paused"
+      description: "Agent is temporarily paused"
+    - name: "error"
+      description: "Agent encountered an error"
+    - name: "shutting_down"
+      description: "Agent is shutting down"
+    - name: "terminated"
+      description: "Agent has been terminated"
+  
+  transitions:
+    - from: "created"
+      to: ["initializing", "terminated"]
+    - from: "initializing"
+      to: ["ready", "error", "terminated"]
+    - from: "ready"
+      to: ["busy", "paused", "error", "shutting_down"]
+    - from: "busy"
+      to: ["ready", "paused", "error", "shutting_down"]
+    - from: "paused"
+      to: ["ready", "shutting_down"]
+    - from: "error"
+      to: ["initializing", "shutting_down"]
+    - from: "shutting_down"
+      to: ["terminated"]
+
+# Monitoring and observability
+observability:
+  metrics:
+    required:
+      - name: "task_count"
+        type: "counter"
+        description: "Total number of tasks processed"
+      - name: "task_duration"
+        type: "histogram"
+        description: "Task execution duration"
+      - name: "error_count"
+        type: "counter"
+        description: "Total number of errors"
+      - name: "status"
+        type: "gauge"
+        description: "Current agent status"
+    
+    optional:
+      - name: "memory_usage"
+        type: "gauge"
+        description: "Current memory usage"
+      - name: "cpu_usage"
+        type: "gauge"
+        description: "Current CPU usage"
+      - name: "queue_depth"
+        type: "gauge"
+        description: "Number of queued tasks"
+  
+  logs:
+    required_fields:
+      - timestamp
+      - level
+      - agent_id
+      - message
+      - context
+    
+    levels:
+      - "debug"
+      - "info"
+      - "warning"
+      - "error"
+      - "critical"
+  
+  traces:
+    required_spans:
+      - "capability_execution"
+      - "message_handling"
+      - "plugin_interaction"
+    
+    required_attributes:
+      - "agent.id"
+      - "agent.type"
+      - "capability.name"
+      - "task.id"
+
+# Security requirements
+security:
+  authentication:
+    description: "Agent authentication requirements"
+    methods:
+      - "token"
+      - "certificate"
+      - "api_key"
+  
+  authorization:
+    description: "Agent authorization model"
+    model: "capability-based"
+    rules:
+      - "Agents can only execute declared capabilities"
+      - "Agents must validate message sender permissions"
+      - "Agents must respect resource access controls"
+  
+  encryption:
+    description: "Encryption requirements"
+    in_transit: true
+    at_rest: true
+    algorithms:
+      - "AES-256"
+      - "RSA-2048"
+
+# Extension points
+extensions:
+  custom_capabilities:
+    description: "Mechanism for adding custom capabilities"
+    registration_method: "dynamic"
+    validation: "schema-based"
+  
+  middleware:
+    description: "Middleware support for cross-cutting concerns"
+    types:
+      - "authentication"
+      - "logging"
+      - "metrics"
+      - "rate_limiting"
+      - "circuit_breaker"
+  
+  plugins:
+    description: "Plugin system for extending agent functionality"
+    types:
+      - "pre_execution"
+      - "post_execution"
+      - "error_handler"
+      - "state_manager"

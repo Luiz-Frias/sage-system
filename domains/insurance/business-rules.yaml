@@ -1,0 +1,731 @@
+# P&C Insurance Business Rules Engine
+# Comprehensive underwriting, rating, and compliance rules
+
+# ==========================================
+# UNDERWRITING RULES
+# ==========================================
+
+underwriting_rules:
+  # Auto Insurance Underwriting Rules
+  auto_underwriting:
+    eligibility:
+      driver_age:
+        rule_id: AUTO_UW_001
+        description: Driver age eligibility
+        conditions:
+          - field: driver.age
+            operator: gte
+            value: 16
+            message: Driver must be at least 16 years old
+          - field: driver.age
+            operator: lte
+            value: 100
+            message: Driver age exceeds maximum limit
+      
+      license_status:
+        rule_id: AUTO_UW_002
+        description: Valid driver's license required
+        conditions:
+          - field: driver.license_status
+            operator: in
+            value: [valid, restricted]
+            message: Driver must have valid or restricted license
+          - field: driver.license_years
+            operator: gte
+            value: 0
+            message: License years cannot be negative
+      
+      vehicle_age:
+        rule_id: AUTO_UW_003
+        description: Vehicle age restrictions
+        conditions:
+          - field: vehicle.age
+            operator: lte
+            value: 20
+            message: Vehicle older than 20 years requires referral
+            action: refer
+          - field: vehicle.age
+            operator: gte
+            value: 0
+            message: Vehicle age must be valid
+      
+      violations:
+        dui_decline:
+          rule_id: AUTO_UW_004
+          description: DUI automatic decline
+          conditions:
+            - field: driver.violations.dui_count_36_months
+              operator: gt
+              value: 0
+              message: DUI within 36 months - automatic decline
+              action: decline
+        
+        major_violations:
+          rule_id: AUTO_UW_005
+          description: Major violations threshold
+          conditions:
+            - field: driver.violations.major_count_36_months
+              operator: gte
+              value: 2
+              message: Two or more major violations - refer to underwriter
+              action: refer
+        
+        minor_violations:
+          rule_id: AUTO_UW_006
+          description: Minor violations threshold
+          conditions:
+            - field: driver.violations.minor_count_36_months
+              operator: gte
+              value: 4
+              message: Four or more minor violations - tier adjustment
+              action: adjust_tier
+      
+      claims_history:
+        at_fault_frequency:
+          rule_id: AUTO_UW_007
+          description: At-fault accident frequency
+          conditions:
+            - field: driver.claims.at_fault_count_60_months
+              operator: gte
+              value: 3
+              message: Three or more at-fault accidents - decline
+              action: decline
+        
+        total_claims:
+          rule_id: AUTO_UW_008
+          description: Total claims threshold
+          conditions:
+            - field: driver.claims.total_count_36_months
+              operator: gte
+              value: 4
+              message: Four or more claims in 36 months - refer
+              action: refer
+      
+      credit_score:
+        minimum_score:
+          rule_id: AUTO_UW_009
+          description: Minimum credit score requirement
+          conditions:
+            - field: customer.credit_score
+              operator: lt
+              value: 500
+              message: Credit score below 500 - non-standard tier
+              action: assign_tier
+              tier: non_standard
+        
+        no_hit:
+          rule_id: AUTO_UW_010
+          description: No credit history
+          conditions:
+            - field: customer.credit_score
+              operator: eq
+              value: null
+              message: No credit history - require deposit
+              action: require_deposit
+    
+    risk_assessment:
+      high_performance_vehicle:
+        rule_id: AUTO_RA_001
+        description: High performance vehicle surcharge
+        conditions:
+          - field: vehicle.performance_class
+            operator: in
+            value: [sports, exotic, modified]
+            message: High performance vehicle - apply surcharge
+            action: surcharge
+            surcharge_code: HIGH_PERF
+      
+      vehicle_usage:
+        business_use:
+          rule_id: AUTO_RA_002
+          description: Business use classification
+          conditions:
+            - field: vehicle.usage.primary_use
+              operator: eq
+              value: business
+              message: Business use requires commercial policy
+              action: refer
+        
+        high_mileage:
+          rule_id: AUTO_RA_003
+          description: High annual mileage
+          conditions:
+            - field: vehicle.usage.annual_mileage
+              operator: gt
+              value: 20000
+              message: High mileage - adjust rate
+              action: rate_adjustment
+              factor: 1.15
+      
+      territory_risk:
+        catastrophe_zone:
+          rule_id: AUTO_RA_004
+          description: High-risk territory
+          conditions:
+            - field: risk.territory_risk_score
+              operator: gte
+              value: 8
+              message: High-risk territory - tier adjustment
+              action: adjust_tier
+    
+    coverage_requirements:
+      state_minimums:
+        rule_id: AUTO_COV_001
+        description: State minimum coverage requirements
+        by_state:
+          CA:
+            bodily_injury_per_person: 15000
+            bodily_injury_per_accident: 30000
+            property_damage: 5000
+          NY:
+            bodily_injury_per_person: 25000
+            bodily_injury_per_accident: 50000
+            property_damage: 10000
+          FL:
+            pip: 10000
+            property_damage: 10000
+      
+      lienholder_requirements:
+        rule_id: AUTO_COV_002
+        description: Lienholder coverage requirements
+        conditions:
+          - field: vehicle.ownership.owned_type
+            operator: in
+            value: [financed, leased]
+            requires:
+              - comprehensive
+              - collision
+            max_deductible: 1000
+  
+  # Home Insurance Underwriting Rules
+  home_underwriting:
+    eligibility:
+      property_age:
+        rule_id: HOME_UW_001
+        description: Property age restrictions
+        conditions:
+          - field: property.construction.year_built
+            operator: lt
+            value: 1950
+            message: Property built before 1950 requires inspection
+            action: require_inspection
+      
+      roof_age:
+        rule_id: HOME_UW_002
+        description: Roof age requirements
+        conditions:
+          - field: property.construction.roof_age
+            operator: gt
+            value: 20
+            message: Roof older than 20 years - require inspection
+            action: require_inspection
+          - field: property.construction.roof_age
+            operator: gt
+            value: 25
+            message: Roof older than 25 years - decline or ACV only
+            action: decline_rcv
+      
+      occupancy:
+        vacant_property:
+          rule_id: HOME_UW_003
+          description: Vacant property restrictions
+          conditions:
+            - field: property.occupancy
+              operator: eq
+              value: vacant
+              message: Vacant property - refer to underwriter
+              action: refer
+        
+        rental_property:
+          rule_id: HOME_UW_004
+          description: Rental property requirements
+          conditions:
+            - field: property.occupancy
+              operator: eq
+              value: rental
+              message: Rental property - require landlord form
+              action: require_form
+              form: DP-3
+      
+      prior_claims:
+        water_damage:
+          rule_id: HOME_UW_005
+          description: Water damage claim history
+          conditions:
+            - field: property.claims.water_damage_count_60_months
+              operator: gte
+              value: 2
+              message: Multiple water claims - decline or surcharge
+              action: refer
+        
+        total_claims:
+          rule_id: HOME_UW_006
+          description: Total property claims
+          conditions:
+            - field: property.claims.total_count_60_months
+              operator: gte
+              value: 3
+              message: Three or more claims - non-standard tier
+              action: assign_tier
+              tier: non_standard
+    
+    risk_factors:
+      protection_class:
+        rule_id: HOME_RF_001
+        description: Fire protection classification
+        conditions:
+          - field: property.protection.protection_class
+            operator: gte
+            value: 8
+            message: Poor fire protection - apply surcharge
+            action: surcharge
+            surcharge_code: PROT_CLASS
+      
+      natural_hazards:
+        flood_zone:
+          rule_id: HOME_RF_002
+          description: Flood zone requirements
+          conditions:
+            - field: property.hazards.flood_zone
+              operator: in
+              value: [A, V]
+              message: High-risk flood zone - require flood insurance
+              action: require_coverage
+              coverage: flood
+        
+        earthquake_zone:
+          rule_id: HOME_RF_003
+          description: Earthquake zone assessment
+          conditions:
+            - field: property.hazards.earthquake_risk
+              operator: gte
+              value: 7
+              message: High earthquake risk - offer earthquake coverage
+              action: recommend_coverage
+              coverage: earthquake
+        
+        wildfire_risk:
+          rule_id: HOME_RF_004
+          description: Wildfire exposure
+          conditions:
+            - field: property.hazards.wildfire_risk
+              operator: eq
+              value: extreme
+              message: Extreme wildfire risk - decline or refer
+              action: decline
+      
+      property_characteristics:
+        swimming_pool:
+          rule_id: HOME_RF_005
+          description: Swimming pool liability
+          conditions:
+            - field: property.features.has_pool
+              operator: eq
+              value: true
+              message: Swimming pool - increase liability limits
+              action: require_minimum
+              coverage: liability
+              minimum: 300000
+        
+        business_operations:
+          rule_id: HOME_RF_006
+          description: Home business operations
+          conditions:
+            - field: property.features.business_conducted
+              operator: eq
+              value: true
+              message: Business conducted - requires endorsement
+              action: require_endorsement
+              endorsement: HOME_BUSINESS
+
+# ==========================================
+# RATING RULES
+# ==========================================
+
+rating_rules:
+  auto_rating:
+    base_rates:
+      rule_id: RATE_AUTO_001
+      description: Base rate selection by coverage
+      by_coverage:
+        bodily_injury:
+          base: 250
+          factors:
+            - coverage_limit
+            - territory
+            - vehicle_class
+        property_damage:
+          base: 150
+          factors:
+            - coverage_limit
+            - territory
+        collision:
+          base: 300
+          factors:
+            - vehicle_value
+            - deductible
+            - vehicle_age
+        comprehensive:
+          base: 200
+          factors:
+            - vehicle_value
+            - deductible
+            - territory
+    
+    driver_factors:
+      age_factor:
+        rule_id: RATE_AUTO_002
+        description: Driver age rating factor
+        table:
+          - age_range: [16, 20]
+            factor: 2.5
+          - age_range: [21, 24]
+            factor: 1.8
+          - age_range: [25, 29]
+            factor: 1.3
+          - age_range: [30, 65]
+            factor: 1.0
+          - age_range: [66, 75]
+            factor: 1.1
+          - age_range: [76, 100]
+            factor: 1.3
+      
+      experience_factor:
+        rule_id: RATE_AUTO_003
+        description: Driving experience factor
+        table:
+          - years: [0, 1]
+            factor: 1.5
+          - years: [2, 3]
+            factor: 1.2
+          - years: [4, 5]
+            factor: 1.1
+          - years: [6, 100]
+            factor: 1.0
+      
+      violation_surcharge:
+        rule_id: RATE_AUTO_004
+        description: Moving violation surcharges
+        by_violation:
+          speeding_minor:
+            points: 1
+            surcharge_percent: 10
+          speeding_major:
+            points: 2
+            surcharge_percent: 25
+          reckless_driving:
+            points: 4
+            surcharge_percent: 50
+          at_fault_accident:
+            points: 3
+            surcharge_percent: 40
+    
+    vehicle_factors:
+      symbol_rating:
+        rule_id: RATE_AUTO_005
+        description: Vehicle symbol assignment
+        factors:
+          - original_cost
+          - repair_cost
+          - theft_frequency
+          - injury_severity
+      
+      age_depreciation:
+        rule_id: RATE_AUTO_006
+        description: Vehicle age depreciation
+        schedule:
+          - years: [0, 1]
+            factor: 1.0
+          - years: [2, 3]
+            factor: 0.9
+          - years: [4, 5]
+            factor: 0.8
+          - years: [6, 10]
+            factor: 0.7
+          - years: [11, 20]
+            factor: 0.6
+    
+    territory_factors:
+      rule_id: RATE_AUTO_007
+      description: Territory rating factors
+      calculation_factors:
+        - claim_frequency
+        - claim_severity
+        - theft_rate
+        - weather_exposure
+        - traffic_density
+    
+    discounts:
+      multi_policy:
+        rule_id: DISC_AUTO_001
+        description: Multi-policy discount
+        conditions:
+          - field: customer.policy_count
+            operator: gte
+            value: 2
+        discount_percent: 10
+      
+      safe_driver:
+        rule_id: DISC_AUTO_002
+        description: Safe driver discount
+        conditions:
+          - field: driver.violations.total_count_60_months
+            operator: eq
+            value: 0
+          - field: driver.claims.at_fault_count_60_months
+            operator: eq
+            value: 0
+        discount_percent: 15
+      
+      vehicle_safety:
+        rule_id: DISC_AUTO_003
+        description: Vehicle safety features discount
+        by_feature:
+          anti_lock_brakes: 5
+          airbags: 10
+          anti_theft: 5
+          backup_camera: 3
+          blind_spot_detection: 5
+          automatic_braking: 10
+      
+      good_student:
+        rule_id: DISC_AUTO_004
+        description: Good student discount
+        conditions:
+          - field: driver.age
+            operator: between
+            value: [16, 24]
+          - field: driver.student.gpa
+            operator: gte
+            value: 3.0
+        discount_percent: 10
+  
+  home_rating:
+    base_rates:
+      rule_id: RATE_HOME_001
+      description: Homeowners base rates
+      by_coverage:
+        dwelling:
+          rate_per_100: 0.35
+          minimum: 500
+        personal_property:
+          percent_of_dwelling: 70
+          rate_per_100: 0.45
+        liability:
+          flat_rate: 150
+          per_100k: 25
+    
+    protection_class_factors:
+      rule_id: RATE_HOME_002
+      description: Fire protection class factors
+      table:
+        - class: [1, 2]
+          factor: 0.8
+        - class: [3, 4]
+          factor: 0.9
+        - class: [5, 6]
+          factor: 1.0
+        - class: [7, 8]
+          factor: 1.2
+        - class: [9, 10]
+          factor: 1.5
+    
+    construction_factors:
+      rule_id: RATE_HOME_003
+      description: Construction type factors
+      by_type:
+        frame: 1.0
+        masonry: 0.9
+        fire_resistive: 0.8
+        manufactured: 1.3
+    
+    age_factors:
+      rule_id: RATE_HOME_004
+      description: Home age rating factors
+      table:
+        - age_range: [0, 10]
+          factor: 0.9
+        - age_range: [11, 25]
+          factor: 1.0
+        - age_range: [26, 50]
+          factor: 1.1
+        - age_range: [51, 100]
+          factor: 1.3
+        - age_range: [101, 200]
+          factor: 1.5
+    
+    deductible_credits:
+      rule_id: RATE_HOME_005
+      description: Deductible credits
+      table:
+        - deductible: 500
+          credit: 0
+        - deductible: 1000
+          credit: 0.1
+        - deductible: 2500
+          credit: 0.2
+        - deductible: 5000
+          credit: 0.3
+        - deductible: 10000
+          credit: 0.4
+
+# ==========================================
+# COMPLIANCE RULES
+# ==========================================
+
+compliance_rules:
+  state_requirements:
+    form_compliance:
+      rule_id: COMP_FORM_001
+      description: Required policy forms by state
+      by_state:
+        CA:
+          auto:
+            - CA_AUTO_001: California Auto Policy
+            - CA_UM_001: Uninsured Motorist Coverage
+            - CA_CANC_001: Cancellation Notice
+          home:
+            - CA_HOME_001: California Homeowners
+            - CA_EARTH_001: Earthquake Disclosure
+        NY:
+          auto:
+            - NY_AUTO_001: New York Auto Policy
+            - NY_SUPP_001: Supplementary Coverage
+          home:
+            - NY_HOME_001: New York Homeowners
+    
+    rate_filing:
+      rule_id: COMP_RATE_001
+      description: Rate filing requirements
+      by_state:
+        prior_approval_states:
+          - states: [CA, NY, FL, NC]
+            lead_time_days: 60
+            approval_required: true
+        file_and_use_states:
+          - states: [TX, IL, OH, PA]
+            lead_time_days: 30
+            approval_required: false
+        use_and_file_states:
+          - states: [CO, AZ, WA, OR]
+            lead_time_days: 0
+            approval_required: false
+    
+    cancellation_rules:
+      rule_id: COMP_CANC_001
+      description: Policy cancellation requirements
+      notice_requirements:
+        non_payment:
+          days_notice: 10
+          delivery_method: [certified_mail, electronic]
+        underwriting_reasons:
+          days_notice: 30
+          valid_reasons:
+            - material_misrepresentation
+            - substantial_risk_change
+            - fraud
+        non_renewal:
+          days_notice: 60
+          require_reason: true
+    
+    disclosure_requirements:
+      rule_id: COMP_DISC_001
+      description: Required disclosures
+      by_type:
+        credit_score_usage:
+          states: [all]
+          when: quote_and_renewal
+          content: credit_adverse_action_notice
+        
+        coverage_changes:
+          states: [all]
+          when: renewal
+          content: coverage_comparison
+        
+        rate_changes:
+          states: [CA, NY, FL]
+          threshold_percent: 10
+          advance_notice_days: 45
+  
+  privacy_compliance:
+    data_protection:
+      rule_id: COMP_PRIV_001
+      description: Personal data protection requirements
+      requirements:
+        - encrypt_at_rest: true
+          data_types: [ssn, drivers_license, financial]
+        - encrypt_in_transit: true
+          minimum_tls: 1.2
+        - retention_period_years: 7
+          applies_to: [policies, claims]
+    
+    consent_requirements:
+      rule_id: COMP_PRIV_002
+      description: Customer consent requirements
+      by_usage:
+        credit_check:
+          explicit_consent: true
+          retention_days: 90
+        
+        marketing:
+          opt_in_required: true
+          granular_preferences: true
+        
+        data_sharing:
+          disclosure_required: true
+          opt_out_available: true
+
+# ==========================================
+# WORKFLOW RULES
+# ==========================================
+
+workflow_rules:
+  new_business:
+    rule_id: WORK_NB_001
+    description: New business workflow
+    steps:
+      1_quote:
+        - validate_inputs
+        - check_eligibility
+        - calculate_premium
+        - apply_discounts
+      2_underwriting:
+        - run_eligibility_rules
+        - check_prior_coverage
+        - verify_information
+        - make_decision
+      3_binding:
+        - final_verification
+        - payment_collection
+        - policy_issuance
+        - document_delivery
+  
+  renewal:
+    rule_id: WORK_REN_001
+    description: Renewal workflow
+    timeline:
+      - days_before: 90
+        action: run_renewal_underwriting
+      - days_before: 60
+        action: generate_renewal_offer
+      - days_before: 45
+        action: send_renewal_notice
+      - days_before: 30
+        action: follow_up_communication
+      - days_before: 7
+        action: final_reminder
+  
+  claims:
+    rule_id: WORK_CLM_001
+    description: Claims impact on underwriting
+    rules:
+      - open_claims:
+          action: hold_new_business
+          until: claim_closed
+      - recent_claims:
+          lookback_days: 30
+          action: refer_to_underwriter
+      - claim_frequency:
+          threshold: 2
+          period_months: 12
+          action: renewal_review

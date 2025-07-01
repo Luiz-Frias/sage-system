@@ -1,0 +1,305 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "description": "Detailed agent capability matrix for SAGE system",
+  "lastUpdated": "2025-07-01T00:00:00Z",
+  "agents": {
+    "insight_agent": {
+      "id": "agent-insight",
+      "name": "Insight Analysis Agent",
+      "description": "Specialized in code analysis, pattern recognition, and architectural insights",
+      "capabilities": {
+        "code_analysis": {
+          "level": "expert",
+          "features": [
+            "static_analysis",
+            "complexity_metrics",
+            "dependency_mapping",
+            "code_smell_detection",
+            "performance_profiling"
+          ],
+          "languages": ["python", "javascript", "typescript", "rust", "go"],
+          "metrics": {
+            "cyclomatic_complexity": true,
+            "code_coverage": true,
+            "duplication_detection": true,
+            "security_vulnerabilities": true
+          }
+        },
+        "pattern_recognition": {
+          "level": "expert",
+          "patterns": [
+            "design_patterns",
+            "anti_patterns",
+            "architectural_patterns",
+            "refactoring_opportunities"
+          ],
+          "learning": {
+            "continuous": true,
+            "feedback_integration": true,
+            "pattern_evolution": true
+          }
+        },
+        "architectural_analysis": {
+          "level": "advanced",
+          "capabilities": [
+            "layer_identification",
+            "component_coupling",
+            "cohesion_analysis",
+            "scalability_assessment"
+          ]
+        }
+      },
+      "limitations": [
+        "Cannot execute code directly",
+        "Limited to static analysis",
+        "Requires structured input"
+      ],
+      "integrations": ["orchestrator", "execution_agent", "testing_agent"]
+    },
+    "execution_agent": {
+      "id": "agent-execution",
+      "name": "Code Execution Agent",
+      "description": "Handles code generation, modification, and execution tasks",
+      "capabilities": {
+        "code_generation": {
+          "level": "expert",
+          "features": [
+            "boilerplate_generation",
+            "pattern_implementation",
+            "api_scaffolding",
+            "test_generation",
+            "documentation_generation"
+          ],
+          "styles": ["functional", "object_oriented", "procedural", "reactive"],
+          "frameworks": {
+            "web": ["react", "vue", "express", "django"],
+            "mobile": ["react_native", "flutter"],
+            "backend": ["fastapi", "spring", "gin"]
+          }
+        },
+        "code_modification": {
+          "level": "expert",
+          "operations": [
+            "refactoring",
+            "optimization",
+            "bug_fixing",
+            "feature_addition",
+            "deprecation_handling"
+          ],
+          "safety": {
+            "backup_creation": true,
+            "rollback_capability": true,
+            "syntax_validation": true
+          }
+        },
+        "execution_control": {
+          "level": "advanced",
+          "environments": ["local", "container", "sandbox", "cloud"],
+          "features": [
+            "process_management",
+            "resource_monitoring",
+            "timeout_handling",
+            "error_recovery"
+          ]
+        }
+      },
+      "security": {
+        "sandboxing": true,
+        "resource_limits": true,
+        "permission_control": true
+      },
+      "limitations": [
+        "Requires appropriate runtime environments",
+        "Subject to resource constraints",
+        "Cannot bypass security policies"
+      ]
+    },
+    "testing_agent": {
+      "id": "agent-testing",
+      "name": "Testing and Validation Agent",
+      "description": "Comprehensive testing, validation, and quality assurance",
+      "capabilities": {
+        "test_generation": {
+          "level": "expert",
+          "types": [
+            "unit_tests",
+            "integration_tests",
+            "end_to_end_tests",
+            "property_based_tests",
+            "mutation_tests"
+          ],
+          "frameworks": {
+            "python": ["pytest", "unittest", "hypothesis"],
+            "javascript": ["jest", "mocha", "cypress"],
+            "rust": ["cargo_test", "proptest"]
+          }
+        },
+        "validation": {
+          "level": "advanced",
+          "checks": [
+            "input_validation",
+            "output_verification",
+            "contract_testing",
+            "schema_validation",
+            "performance_benchmarks"
+          ]
+        },
+        "quality_metrics": {
+          "level": "advanced",
+          "metrics": [
+            "code_coverage",
+            "branch_coverage",
+            "mutation_score",
+            "performance_regression",
+            "security_compliance"
+          ]
+        }
+      },
+      "automation": {
+        "ci_integration": true,
+        "parallel_execution": true,
+        "report_generation": true
+      }
+    },
+    "orchestrator": {
+      "id": "agent-orchestrator",
+      "name": "System Orchestrator",
+      "description": "Central coordination and task management",
+      "capabilities": {
+        "task_coordination": {
+          "level": "expert",
+          "features": [
+            "task_decomposition",
+            "agent_assignment",
+            "workflow_management",
+            "parallel_execution",
+            "dependency_resolution"
+          ]
+        },
+        "resource_management": {
+          "level": "advanced",
+          "resources": [
+            "agent_allocation",
+            "compute_resources",
+            "memory_management",
+            "api_rate_limits",
+            "cost_optimization"
+          ]
+        },
+        "communication": {
+          "level": "expert",
+          "protocols": [
+            "agent_messaging",
+            "event_broadcasting",
+            "state_synchronization",
+            "error_propagation"
+          ]
+        },
+        "decision_making": {
+          "level": "advanced",
+          "strategies": [
+            "priority_based",
+            "resource_optimized",
+            "deadline_driven",
+            "quality_focused"
+          ]
+        }
+      },
+      "monitoring": {
+        "real_time": true,
+        "metrics_collection": true,
+        "alerting": true,
+        "logging": true
+      }
+    },
+    "learning_agent": {
+      "id": "agent-learning",
+      "name": "Continuous Learning Agent",
+      "description": "Pattern learning and system improvement",
+      "capabilities": {
+        "pattern_learning": {
+          "level": "advanced",
+          "methods": [
+            "statistical_analysis",
+            "machine_learning",
+            "rule_extraction",
+            "feedback_integration"
+          ]
+        },
+        "knowledge_management": {
+          "level": "expert",
+          "features": [
+            "pattern_storage",
+            "knowledge_retrieval",
+            "context_mapping",
+            "version_control"
+          ]
+        },
+        "adaptation": {
+          "level": "advanced",
+          "mechanisms": [
+            "parameter_tuning",
+            "strategy_adjustment",
+            "preference_learning",
+            "error_correction"
+          ]
+        }
+      },
+      "data_sources": [
+        "execution_logs",
+        "user_feedback",
+        "performance_metrics",
+        "error_patterns"
+      ]
+    }
+  },
+  "capabilityMatrix": {
+    "levels": {
+      "beginner": "Basic functionality with limited scope",
+      "intermediate": "Standard functionality with good coverage",
+      "advanced": "Comprehensive functionality with optimization",
+      "expert": "Full functionality with advanced features"
+    },
+    "integrationMatrix": {
+      "insight_agent": {
+        "orchestrator": "bidirectional",
+        "execution_agent": "provides_analysis",
+        "testing_agent": "provides_metrics",
+        "learning_agent": "provides_patterns"
+      },
+      "execution_agent": {
+        "orchestrator": "bidirectional",
+        "insight_agent": "receives_analysis",
+        "testing_agent": "triggers_tests",
+        "learning_agent": "provides_results"
+      },
+      "testing_agent": {
+        "orchestrator": "bidirectional",
+        "insight_agent": "receives_metrics",
+        "execution_agent": "validates_code",
+        "learning_agent": "provides_feedback"
+      },
+      "learning_agent": {
+        "orchestrator": "bidirectional",
+        "all_agents": "observes_and_learns"
+      }
+    }
+  },
+  "performanceMetrics": {
+    "response_time": {
+      "insight_agent": "< 500ms",
+      "execution_agent": "< 2000ms",
+      "testing_agent": "variable",
+      "orchestrator": "< 100ms",
+      "learning_agent": "< 1000ms"
+    },
+    "accuracy": {
+      "insight_agent": "> 95%",
+      "execution_agent": "> 98%",
+      "testing_agent": "> 99%",
+      "orchestrator": "> 99.9%",
+      "learning_agent": "> 90%"
+    }
+  }
+}

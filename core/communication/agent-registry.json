@@ -1,0 +1,15 @@
+{
+  "registry_version": "1.0.0",
+  "last_updated": "2024-12-31T00:00:00Z",
+  "current_wave": null,
+  "active_agents": [],
+  "completed_agents": [],
+  "agent_history": [],
+  "statistics": {
+    "total_deployments": 0,
+    "successful_completions": 0,
+    "failed_deployments": 0,
+    "average_completion_time": null,
+    "common_blockers": []
+  }
+}

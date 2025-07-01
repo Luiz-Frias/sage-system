@@ -1,0 +1,743 @@
+# SAGE Communication Bus Interface Definition
+# Version: 1.0.0
+# This interface defines the contract for the message bus that enables agent communication
+
+interface:
+  name: ICommunicationBus
+  version: "1.0.0"
+  description: |
+    Defines the contract for the communication bus that facilitates
+    message passing, event distribution, and coordination between
+    SAGE agents. The bus provides reliable, scalable, and secure
+    communication infrastructure.
+
+# Bus configuration schema
+configuration:
+  required_fields:
+    bus_id:
+      type: string
+      description: "Unique identifier for the bus instance"
+      pattern: "^[a-z]+(-[a-z]+)*-[a-f0-9]{8}$"
+      example: "main-bus-a1b2c3d4"
+    
+    transport:
+      type: object
+      description: "Transport layer configuration"
+      properties:
+        type:
+          type: string
+          enum: ["in-memory", "redis", "rabbitmq", "kafka", "nats"]
+          description: "Message transport mechanism"
+        
+        connection:
+          type: object
+          description: "Connection parameters for the transport"
+          properties:
+            host:
+              type: string
+            port:
+              type: integer
+            auth:
+              type: object
+              properties:
+                method:
+                  type: string
+                  enum: ["none", "password", "token", "certificate"]
+                credentials:
+                  type: object
+        
+        options:
+          type: object
+          description: "Transport-specific options"
+          properties:
+            connection_pool_size:
+              type: integer
+              minimum: 1
+              maximum: 100
+            timeout_ms:
+              type: integer
+              minimum: 100
+            retry_policy:
+              type: object
+    
+    routing:
+      type: object
+      description: "Message routing configuration"
+      properties:
+        strategy:
+          type: string
+          enum: ["direct", "topic", "fanout", "content-based"]
+          description: "Routing strategy for messages"
+        
+        rules:
+          type: array
+          description: "Routing rules"
+          items:
+            type: object
+            properties:
+              pattern:
+                type: string
+              destination:
+                type: string
+              priority:
+                type: integer
+        
+        dead_letter_queue:
+          type: object
+          description: "Configuration for undeliverable messages"
+          properties:
+            enabled:
+              type: boolean
+            max_retries:
+              type: integer
+            ttl_ms:
+              type: integer
+    
+    reliability:
+      type: object
+      description: "Reliability and durability settings"
+      properties:
+        message_persistence:
+          type: boolean
+          default: true
+          description: "Persist messages to storage"
+        
+        delivery_guarantee:
+          type: string
+          enum: ["at-most-once", "at-least-once", "exactly-once"]
+          default: "at-least-once"
+        
+        acknowledgment_mode:
+          type: string
+          enum: ["auto", "manual", "none"]
+          default: "auto"
+        
+        transaction_support:
+          type: boolean
+          default: false
+
+# Core communication bus methods
+required_methods:
+  initialize:
+    description: "Initialize the communication bus"
+    parameters:
+      - name: config
+        type: object
+        description: "Bus configuration object"
+    returns:
+      type: object
+      properties:
+        success:
+          type: boolean
+        bus_info:
+          type: object
+          properties:
+            id:
+              type: string
+            version:
+              type: string
+            capabilities:
+              type: array
+              items:
+                type: string
+            status:
+              type: string
+              enum: ["ready", "initializing", "error"]
+        error:
+          type: string
+          optional: true
+  
+  publish:
+    description: "Publish a message to the bus"
+    parameters:
+      - name: message
+        type: object
+        description: "Message to publish"
+        properties:
+          topic:
+            type: string
+            description: "Topic or channel for the message"
+          payload:
+            type: object
+            description: "Message payload"
+          headers:
+            type: object
+            description: "Message headers"
+            optional: true
+          priority:
+            type: string
+            enum: ["low", "normal", "high", "critical"]
+            default: "normal"
+          ttl_ms:
+            type: integer
+            description: "Time to live in milliseconds"
+            optional: true
+      - name: options
+        type: object
+        optional: true
+        properties:
+          persistent:
+            type: boolean
+            default: true
+          timeout_ms:
+            type: integer
+          confirm:
+            type: boolean
+            description: "Wait for confirmation"
+    returns:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message_id:
+          type: string
+          description: "Unique identifier for the published message"
+        timestamp:
+          type: string
+          format: date-time
+        error:
+          type: object
+          optional: true
+  
+  subscribe:
+    description: "Subscribe to messages on specific topics"
+    parameters:
+      - name: subscription
+        type: object
+        properties:
+          subscriber_id:
+            type: string
+            description: "Unique identifier for the subscriber"
+          topics:
+            type: array
+            description: "List of topics to subscribe to"
+            items:
+              type: string
+          filter:
+            type: object
+            optional: true
+            description: "Content-based filtering rules"
+          handler:
+            type: function
+            description: "Message handler function"
+          options:
+            type: object
+            optional: true
+            properties:
+              queue_group:
+                type: string
+                description: "Queue group for load balancing"
+              max_inflight:
+                type: integer
+                description: "Maximum concurrent messages"
+              acknowledgment:
+                type: string
+                enum: ["auto", "manual"]
+    returns:
+      type: object
+      properties:
+        success:
+          type: boolean
+        subscription_id:
+          type: string
+          description: "Unique identifier for the subscription"
+        error:
+          type: string
+          optional: true
+  
+  unsubscribe:
+    description: "Unsubscribe from topics"
+    parameters:
+      - name: subscription_id
+        type: string
+        description: "Subscription identifier to cancel"
+    returns:
+      type: object
+      properties:
+        success:
+          type: boolean
+        unsubscribed_topics:
+          type: array
+          items:
+            type: string
+        error:
+          type: string
+          optional: true
+  
+  request:
+    description: "Send a request and wait for response (RPC pattern)"
+    parameters:
+      - name: request
+        type: object
+        properties:
+          target:
+            type: object
+            description: "Target agent or service"
+            properties:
+              agent_id:
+                type: string
+                optional: true
+              agent_type:
+                type: string
+                optional: true
+              capability:
+                type: string
+          payload:
+            type: object
+          timeout_ms:
+            type: integer
+            default: 30000
+          headers:
+            type: object
+            optional: true
+    returns:
+      type: object
+      properties:
+        success:
+          type: boolean
+        response:
+          type: object
+          optional: true
+          properties:
+            payload:
+              type: object
+            headers:
+              type: object
+            responder:
+              type: object
+        error:
+          type: object
+          optional: true
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+  
+  broadcast:
+    description: "Broadcast a message to all subscribers"
+    parameters:
+      - name: message
+        type: object
+        properties:
+          event_type:
+            type: string
+          payload:
+            type: object
+          scope:
+            type: string
+            enum: ["global", "domain", "agents"]
+            default: "global"
+          exclude:
+            type: array
+            optional: true
+            description: "List of subscriber IDs to exclude"
+            items:
+              type: string
+    returns:
+      type: object
+      properties:
+        success:
+          type: boolean
+        recipients_count:
+          type: integer
+        broadcast_id:
+          type: string
+        error:
+          type: string
+          optional: true
+  
+  get_status:
+    description: "Get current bus status and health"
+    parameters: []
+    returns:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ["healthy", "degraded", "unhealthy"]
+        metrics:
+          type: object
+          properties:
+            messages_published:
+              type: integer
+            messages_delivered:
+              type: integer
+            messages_failed:
+              type: integer
+            active_subscriptions:
+              type: integer
+            connected_agents:
+              type: integer
+            queue_depths:
+              type: object
+              additionalProperties:
+                type: integer
+            latency_ms:
+              type: object
+              properties:
+                p50:
+                  type: number
+                p95:
+                  type: number
+                p99:
+                  type: number
+        health_checks:
+          type: array
+          items:
+            type: object
+            properties:
+              component:
+                type: string
+              status:
+                type: string
+              message:
+                type: string
+
+# Message formats and protocols
+protocols:
+  message_schema:
+    description: "Standard message format"
+    type: object
+    required: ["id", "timestamp", "version", "type", "payload"]
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: "Unique message identifier"
+      
+      timestamp:
+        type: string
+        format: date-time
+        description: "Message creation timestamp"
+      
+      version:
+        type: string
+        description: "Message format version"
+        pattern: "^\\d+\\.\\d+$"
+      
+      type:
+        type: string
+        description: "Message type"
+        enum: ["event", "command", "query", "document", "notification"]
+      
+      source:
+        type: object
+        description: "Message source"
+        properties:
+          agent_id:
+            type: string
+          agent_type:
+            type: string
+          node_id:
+            type: string
+      
+      destination:
+        type: object
+        optional: true
+        description: "Message destination"
+        properties:
+          agent_id:
+            type: string
+            optional: true
+          agent_type:
+            type: string
+            optional: true
+          topic:
+            type: string
+            optional: true
+      
+      payload:
+        type: object
+        description: "Message payload"
+      
+      headers:
+        type: object
+        optional: true
+        description: "Message headers"
+        properties:
+          correlation_id:
+            type: string
+          causation_id:
+            type: string
+          priority:
+            type: string
+          ttl_ms:
+            type: integer
+          retry_count:
+            type: integer
+          custom:
+            type: object
+      
+      metadata:
+        type: object
+        optional: true
+        description: "Message metadata"
+        properties:
+          compressed:
+            type: boolean
+          encrypted:
+            type: boolean
+          content_type:
+            type: string
+          encoding:
+            type: string
+  
+  routing_patterns:
+    direct:
+      description: "Point-to-point messaging"
+      properties:
+        destination_id:
+          type: string
+          required: true
+    
+    topic:
+      description: "Topic-based pub/sub"
+      properties:
+        topic_hierarchy:
+          type: string
+          pattern: "^[a-z]+(\\.{[a-z]+})*$"
+          example: "agent.status.update"
+    
+    fanout:
+      description: "Broadcast to all subscribers"
+      properties:
+        scope:
+          type: string
+    
+    content_based:
+      description: "Route based on message content"
+      properties:
+        rules:
+          type: array
+          items:
+            type: object
+            properties:
+              expression:
+                type: string
+              destination:
+                type: string
+
+# Queue management
+queues:
+  types:
+    work_queue:
+      description: "Task distribution queue"
+      properties:
+        load_balancing:
+          type: string
+          enum: ["round-robin", "least-loaded", "random"]
+        max_consumers:
+          type: integer
+        prefetch_count:
+          type: integer
+    
+    priority_queue:
+      description: "Priority-based message queue"
+      properties:
+        priorities:
+          type: array
+          items:
+            type: string
+            enum: ["critical", "high", "normal", "low"]
+        starvation_prevention:
+          type: boolean
+    
+    delay_queue:
+      description: "Delayed message delivery"
+      properties:
+        max_delay_ms:
+          type: integer
+        precision_ms:
+          type: integer
+    
+    dead_letter_queue:
+      description: "Failed message queue"
+      properties:
+        max_retries:
+          type: integer
+        ttl_ms:
+          type: integer
+        alerting:
+          type: boolean
+
+# Security and access control
+security:
+  authentication:
+    description: "Authentication mechanisms"
+    methods:
+      - type: "token"
+        properties:
+          token_type:
+            type: string
+            enum: ["jwt", "api_key", "oauth2"]
+          validation_endpoint:
+            type: string
+      
+      - type: "certificate"
+        properties:
+          ca_cert:
+            type: string
+          verify_hostname:
+            type: boolean
+      
+      - type: "sasl"
+        properties:
+          mechanism:
+            type: string
+            enum: ["plain", "scram-sha-256", "scram-sha-512"]
+  
+  authorization:
+    description: "Authorization model"
+    type: "acl"
+    rules:
+      - resource: "topic"
+        permissions: ["publish", "subscribe", "admin"]
+      - resource: "queue"
+        permissions: ["produce", "consume", "admin"]
+      - resource: "agent"
+        permissions: ["send", "receive", "query"]
+  
+  encryption:
+    transport:
+      enabled: true
+      protocol: "TLS"
+      min_version: "1.2"
+    
+    message:
+      enabled: false
+      algorithm: "AES-256-GCM"
+      key_management: "external"
+
+# Monitoring and observability
+observability:
+  metrics:
+    message_metrics:
+      - name: "messages_published_total"
+        type: "counter"
+        labels: ["topic", "agent_type"]
+      
+      - name: "messages_delivered_total"
+        type: "counter"
+        labels: ["topic", "agent_type"]
+      
+      - name: "message_processing_duration_seconds"
+        type: "histogram"
+        labels: ["topic", "agent_type"]
+      
+      - name: "message_size_bytes"
+        type: "histogram"
+        labels: ["topic", "type"]
+    
+    queue_metrics:
+      - name: "queue_depth"
+        type: "gauge"
+        labels: ["queue_name"]
+      
+      - name: "queue_consumer_count"
+        type: "gauge"
+        labels: ["queue_name"]
+      
+      - name: "queue_message_age_seconds"
+        type: "histogram"
+        labels: ["queue_name"]
+    
+    system_metrics:
+      - name: "bus_connections_active"
+        type: "gauge"
+      
+      - name: "bus_throughput_messages_per_second"
+        type: "gauge"
+      
+      - name: "bus_latency_milliseconds"
+        type: "histogram"
+        labels: ["operation"]
+  
+  logging:
+    log_levels:
+      - "trace"
+      - "debug"
+      - "info"
+      - "warn"
+      - "error"
+    
+    structured_fields:
+      - "timestamp"
+      - "level"
+      - "message_id"
+      - "correlation_id"
+      - "agent_id"
+      - "topic"
+      - "operation"
+      - "duration_ms"
+  
+  tracing:
+    enabled: true
+    sampling_rate: 0.1
+    exporters:
+      - "jaeger"
+      - "zipkin"
+      - "otlp"
+
+# High availability and scalability
+high_availability:
+  clustering:
+    enabled: true
+    mode: "active-active"
+    consensus: "raft"
+    min_nodes: 3
+  
+  replication:
+    enabled: true
+    factor: 3
+    consistency: "eventual"
+  
+  partitioning:
+    strategy: "consistent-hashing"
+    partitions: 32
+    rebalancing: "automatic"
+  
+  failover:
+    detection_timeout_ms: 5000
+    failover_timeout_ms: 10000
+    automatic: true
+
+# Extension points
+extensions:
+  middleware:
+    description: "Middleware pipeline for message processing"
+    stages:
+      - "authentication"
+      - "authorization"
+      - "validation"
+      - "transformation"
+      - "routing"
+      - "logging"
+      - "metrics"
+    
+    custom_middleware:
+      interface: "IMessageMiddleware"
+      registration: "dynamic"
+  
+  serializers:
+    description: "Pluggable message serializers"
+    supported:
+      - "json"
+      - "protobuf"
+      - "msgpack"
+      - "avro"
+    
+    custom_serializer:
+      interface: "IMessageSerializer"
+      registration: "static"
+  
+  transports:
+    description: "Pluggable transport implementations"
+    interface: "ITransport"
+    capabilities:
+      - "publish"
+      - "subscribe"
+      - "request-reply"
+      - "streaming"

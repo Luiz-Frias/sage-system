@@ -1,0 +1,115 @@
+# SAGE System Configuration
+# Core configuration for the Supervisor Agent-Generated Engineering system
+
+version: "1.0.0"
+system_name: "SAGE"
+
+core_structure:
+  required_directories:
+    # These directories MUST be present in every SAGE project
+    - source_documents/      # Domain-specific requirements and architecture
+    - core/                  # SAGE orchestration engine
+    - languages/             # Language-specific plugins
+    - domains/              # Domain templates (insurance, ecommerce, etc)
+    
+  essential_files:
+    - MASTER_INSTRUCTION_SET.md
+    - example_CLAUDE.md
+    - core/registry/agent-matrix.yaml
+    - core/communication/communication-protocol.yaml
+
+project_initialization:
+  on_clone:
+    steps:
+      - "Verify source_documents/ exists and is populated"
+      - "Initialize agent registry"
+      - "Create communication channels"
+      - "Set up wave contexts directory"
+      
+  required_context_files:
+    # These files in source_documents/ provide essential context
+    business_context:
+      - "product-roadmap.md"
+      - "tech-stack.md"
+      - "product_architectures/business-architecture.md"
+      
+    technical_context:
+      - "product_architectures/application-architecture.md"
+      - "product_architectures/data-architecture.md"
+      - "product_architectures/technology-architecture.md"
+      
+    requirements_context:
+      - "product_requirements/data-driven-prd-template.md"
+      - "product_requirements/[domain]-specific-prd.md"
+      
+    implementation_context:
+      - "product_roadmaps/discovery-and-planning.md"
+      - "product_roadmaps/development-and-configuration.md"
+      - "product_roadmaps/deployment-and-go-live.md"
+
+supervisor_context_gathering:
+  pre_wave_analysis:
+    description: "What supervisor must do before deploying agents"
+    steps:
+      - read: "MASTER_INSTRUCTION_SET.md"
+      - read: "All files in source_documents/"
+      - analyze: "Project requirements and architecture"
+      - plan: "Wave execution strategy"
+      - create: "Agent deployment instructions"
+      
+  context_synthesis:
+    outputs:
+      - "wave_contexts/current/PROJECT_CONTEXT.md"
+      - "wave_contexts/current/DEPLOYMENT_PLAN.md"
+      - "wave_contexts/current/AGENT_ASSIGNMENTS.md"
+
+domain_templates:
+  insurance:
+    source_documents:
+      - "insurance-specific-prd.md"
+      - "insurance-compliance-matrix.md"
+      - "state-regulatory-requirements.md"
+      
+  ecommerce:
+    source_documents:
+      - "ecommerce-specific-prd.md"
+      - "payment-integration-requirements.md"
+      - "inventory-management-specs.md"
+      
+  saas:
+    source_documents:
+      - "saas-specific-prd.md"
+      - "multi-tenancy-requirements.md"
+      - "subscription-billing-specs.md"
+
+language_plugins:
+  typescript:
+    patterns_location: "languages/typescript/patterns/"
+    templates_location: "languages/typescript/templates/"
+    guardrails_location: "languages/typescript/guardrails/"
+    
+  python:
+    patterns_location: "languages/python/patterns/"
+    templates_location: "languages/python/templates/"
+    guardrails_location: "languages/python/guardrails/"
+    
+  rust:
+    patterns_location: "languages/rust/patterns/"
+    templates_location: "languages/rust/templates/"
+    guardrails_location: "languages/rust/guardrails/"
+
+wave_execution:
+  wave_1:
+    focus: "Foundation - 80% build"
+    duration: "2 hours max"
+    parallelization: "maximum"
+    
+  wave_2:
+    focus: "Features - 90% build"
+    duration: "1 hour"
+    parallelization: "moderate"
+    
+  wave_3:
+    focus: "Polish - 100% build"
+    duration: "30 minutes"
+    parallelization: "minimal"
