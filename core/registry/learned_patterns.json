@@ -1,0 +1,307 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "description": "Patterns learned from executions and user interactions",
+  "lastUpdated": "2025-07-01T00:00:00Z",
+  "learning_metadata": {
+    "total_executions": 15847,
+    "successful_patterns": 14235,
+    "failed_patterns": 1612,
+    "learning_rate": 0.898,
+    "confidence_threshold": 0.85
+  },
+  "learned_patterns": [
+    {
+      "id": "learned-async-error-boundary",
+      "name": "Async Error Boundary Pattern",
+      "discovered_date": "2024-11-15T10:30:00Z",
+      "confidence": 0.94,
+      "occurrences": 342,
+      "description": "Comprehensive error handling for async operations with retry logic",
+      "context": {
+        "languages": ["javascript", "typescript"],
+        "frameworks": ["react", "node.js"],
+        "problem_solved": "Unhandled promise rejections in production"
+      },
+      "pattern": {
+        "structure": {
+          "wrapper_function": "asyncErrorBoundary",
+          "retry_logic": "exponential_backoff",
+          "error_categorization": true,
+          "fallback_behavior": true
+        },
+        "implementation": {
+          "typescript": "async function asyncErrorBoundary<T>(\n  fn: () => Promise<T>,\n  options: {\n    retries?: number;\n    onError?: (error: Error) => void;\n    fallback?: T;\n  } = {}\n): Promise<T> {\n  const { retries = 3, onError, fallback } = options;\n  \n  for (let i = 0; i <= retries; i++) {\n    try {\n      return await fn();\n    } catch (error) {\n      if (i === retries) {\n        onError?.(error as Error);\n        if (fallback !== undefined) return fallback;\n        throw error;\n      }\n      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));\n    }\n  }\n  throw new Error('Unreachable');\n}"
+        }
+      },
+      "metrics": {
+        "error_reduction": "78%",
+        "user_satisfaction": "increased",
+        "performance_impact": "minimal"
+      },
+      "evolution": [
+        {
+          "version": 1,
+          "date": "2024-11-15",
+          "changes": "Initial pattern discovery"
+        },
+        {
+          "version": 2,
+          "date": "2024-12-01",
+          "changes": "Added exponential backoff"
+        },
+        {
+          "version": 3,
+          "date": "2024-12-20",
+          "changes": "Added error categorization"
+        }
+      ]
+    },
+    {
+      "id": "learned-api-response-cache",
+      "name": "Intelligent API Response Caching",
+      "discovered_date": "2024-10-22T14:15:00Z",
+      "confidence": 0.91,
+      "occurrences": 567,
+      "description": "Smart caching strategy for API responses with invalidation",
+      "context": {
+        "languages": ["python", "javascript"],
+        "use_cases": ["REST APIs", "GraphQL", "External service calls"],
+        "problem_solved": "Redundant API calls and rate limiting"
+      },
+      "pattern": {
+        "components": [
+          "Cache key generation",
+          "TTL management",
+          "Invalidation strategy",
+          "Stale-while-revalidate"
+        ],
+        "implementation": {
+          "python": "from functools import wraps\nfrom typing import Any, Callable, Optional\nimport hashlib\nimport json\nimport time\n\nclass APICache:\n    def __init__(self, ttl: int = 300):\n        self.cache = {}\n        self.ttl = ttl\n    \n    def cache_key(self, *args, **kwargs) -> str:\n        key_data = {'args': args, 'kwargs': kwargs}\n        return hashlib.md5(\n            json.dumps(key_data, sort_keys=True).encode()\n        ).hexdigest()\n    \n    def cached(self, func: Callable) -> Callable:\n        @wraps(func)\n        async def wrapper(*args, **kwargs) -> Any:\n            key = self.cache_key(*args, **kwargs)\n            \n            if key in self.cache:\n                entry = self.cache[key]\n                if time.time() < entry['expires']:\n                    return entry['data']\n            \n            result = await func(*args, **kwargs)\n            self.cache[key] = {\n                'data': result,\n                'expires': time.time() + self.ttl\n            }\n            return result\n        \n        return wrapper"
+        }
+      },
+      "benefits": {
+        "api_calls_reduced": "65%",
+        "response_time_improvement": "3.2x",
+        "cost_savings": "significant"
+      }
+    },
+    {
+      "id": "learned-state-migration",
+      "name": "Safe State Migration Pattern",
+      "discovered_date": "2024-09-30T09:45:00Z",
+      "confidence": 0.88,
+      "occurrences": 234,
+      "description": "Pattern for migrating application state without data loss",
+      "context": {
+        "scenarios": ["Database migrations", "API versioning", "Schema updates"],
+        "critical_factor": "Zero downtime requirement"
+      },
+      "pattern": {
+        "phases": [
+          "Dual-write phase",
+          "Migration phase",
+          "Validation phase",
+          "Cutover phase",
+          "Cleanup phase"
+        ],
+        "safety_checks": [
+          "Data integrity validation",
+          "Rollback capability",
+          "Performance monitoring",
+          "Gradual rollout"
+        ]
+      },
+      "success_rate": 0.96
+    },
+    {
+      "id": "learned-test-data-builder",
+      "name": "Fluent Test Data Builder",
+      "discovered_date": "2024-08-18T11:20:00Z",
+      "confidence": 0.92,
+      "occurrences": 892,
+      "description": "Builder pattern for creating test data with sensible defaults",
+      "context": {
+        "testing_frameworks": ["pytest", "jest", "junit"],
+        "problem_solved": "Complex test setup and maintenance"
+      },
+      "pattern": {
+        "features": [
+          "Fluent interface",
+          "Sensible defaults",
+          "Random data generation",
+          "Relationship handling"
+        ],
+        "implementation": {
+          "python": "class UserBuilder:\n    def __init__(self):\n        self.user = {\n            'id': str(uuid.uuid4()),\n            'name': fake.name(),\n            'email': fake.email(),\n            'active': True,\n            'created_at': datetime.now()\n        }\n    \n    def with_name(self, name: str) -> 'UserBuilder':\n        self.user['name'] = name\n        return self\n    \n    def inactive(self) -> 'UserBuilder':\n        self.user['active'] = False\n        return self\n    \n    def build(self) -> dict:\n        return self.user.copy()"
+        }
+      },
+      "impact": {
+        "test_readability": "improved",
+        "test_maintenance": "reduced by 40%",
+        "test_coverage": "increased"
+      }
+    },
+    {
+      "id": "learned-feature-flag-decorator",
+      "name": "Feature Flag Decorator Pattern",
+      "discovered_date": "2024-07-05T16:30:00Z",
+      "confidence": 0.89,
+      "occurrences": 445,
+      "description": "Decorator-based feature flag implementation for gradual rollouts",
+      "context": {
+        "use_cases": ["A/B testing", "Gradual rollouts", "Emergency killswitch"],
+        "languages": ["python", "javascript", "java"]
+      },
+      "pattern": {
+        "components": [
+          "Flag provider interface",
+          "Decorator implementation",
+          "Fallback behavior",
+          "Monitoring integration"
+        ],
+        "benefits": [
+          "Clean code separation",
+          "Runtime toggling",
+          "No code deployment needed",
+          "Automatic metrics"
+        ]
+      }
+    },
+    {
+      "id": "learned-dependency-injection-container",
+      "name": "Lightweight DI Container",
+      "discovered_date": "2024-06-12T13:45:00Z",
+      "confidence": 0.87,
+      "occurrences": 312,
+      "description": "Simple dependency injection without heavy frameworks",
+      "context": {
+        "problem_solved": "Complex dependency management without framework overhead",
+        "suitable_for": ["Microservices", "CLI tools", "Small applications"]
+      },
+      "pattern": {
+        "features": [
+          "Auto-wiring",
+          "Singleton support",
+          "Factory functions",
+          "Circular dependency detection"
+        ],
+        "implementation_snippet": "container.register('database', DatabaseConnection, singleton=True)\ncontainer.register('user_service', UserService, dependencies=['database'])\nuser_service = container.resolve('user_service')"
+      }
+    }
+  ],
+  "pattern_categories": {
+    "error_handling": {
+      "patterns": ["learned-async-error-boundary"],
+      "total_occurrences": 1234,
+      "average_confidence": 0.92
+    },
+    "performance": {
+      "patterns": ["learned-api-response-cache"],
+      "total_occurrences": 2156,
+      "average_confidence": 0.90
+    },
+    "testing": {
+      "patterns": ["learned-test-data-builder"],
+      "total_occurrences": 892,
+      "average_confidence": 0.92
+    },
+    "architecture": {
+      "patterns": ["learned-dependency-injection-container", "learned-feature-flag-decorator"],
+      "total_occurrences": 757,
+      "average_confidence": 0.88
+    },
+    "migration": {
+      "patterns": ["learned-state-migration"],
+      "total_occurrences": 234,
+      "average_confidence": 0.88
+    }
+  },
+  "learning_insights": {
+    "trending_problems": [
+      {
+        "problem": "Async error handling",
+        "frequency": "increasing",
+        "solutions_found": 3
+      },
+      {
+        "problem": "API rate limiting",
+        "frequency": "stable",
+        "solutions_found": 2
+      },
+      {
+        "problem": "Test data management",
+        "frequency": "increasing",
+        "solutions_found": 4
+      }
+    ],
+    "successful_combinations": [
+      {
+        "patterns": ["learned-async-error-boundary", "learned-api-response-cache"],
+        "context": "External API integration",
+        "success_rate": 0.94
+      },
+      {
+        "patterns": ["learned-feature-flag-decorator", "learned-state-migration"],
+        "context": "Gradual feature rollout",
+        "success_rate": 0.91
+      }
+    ],
+    "failed_attempts": [
+      {
+        "attempted_pattern": "Auto-generated SQL from natural language",
+        "failure_reason": "Too many edge cases and security concerns",
+        "lessons_learned": "Domain-specific languages need careful boundaries"
+      }
+    ]
+  },
+  "recommendation_engine": {
+    "rules": [
+      {
+        "condition": "external_api_calls > 100/minute",
+        "recommend": ["learned-api-response-cache"],
+        "priority": "high"
+      },
+      {
+        "condition": "async_operations && error_rate > 0.05",
+        "recommend": ["learned-async-error-boundary"],
+        "priority": "high"
+      },
+      {
+        "condition": "test_files && complex_objects",
+        "recommend": ["learned-test-data-builder"],
+        "priority": "medium"
+      }
+    ],
+    "contextual_suggestions": {
+      "web_api": [
+        "learned-api-response-cache",
+        "learned-async-error-boundary"
+      ],
+      "testing": [
+        "learned-test-data-builder"
+      ],
+      "deployment": [
+        "learned-feature-flag-decorator",
+        "learned-state-migration"
+      ]
+    }
+  },
+  "pattern_validation": {
+    "validation_criteria": [
+      "Minimum 50 successful applications",
+      "Success rate > 85%",
+      "No critical failures in last 30 days",
+      "Positive user feedback"
+    ],
+    "review_schedule": "monthly",
+    "deprecation_policy": {
+      "criteria": [
+        "Success rate < 70%",
+        "Better alternative found",
+        "Technology deprecated"
+      ],
+      "grace_period": "90 days"
+    }
+  }
+}

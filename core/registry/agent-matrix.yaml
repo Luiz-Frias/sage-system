@@ -1,0 +1,331 @@
+# SAGE Agent Capability Matrix
+# This file defines all available agents, their capabilities, and compatibility rules
+# Language-agnostic format for cross-platform usage
+
+version: "1.0.0"
+last_updated: "2024-12-31"
+
+agent_types:
+  development:
+    description: "Agents that create code and implement features"
+    agents:
+      - id: "backend-api-specialist"
+        name: "Backend API Developer"
+        capabilities:
+          - "rest-api-design"
+          - "graphql-implementation"
+          - "websocket-setup"
+          - "authentication-flows"
+          - "database-integration"
+        supported_languages:
+          - "typescript"
+          - "python"
+          - "rust"
+        output_artifacts:
+          - "api-routes"
+          - "middleware"
+          - "data-models"
+          - "api-documentation"
+        dependencies:
+          - "database-schema-architect"
+        estimated_duration_minutes: 45
+        can_parallelize: true
+        
+      - id: "frontend-ui-engineer"
+        name: "Frontend UI Developer"
+        capabilities:
+          - "component-architecture"
+          - "state-management"
+          - "responsive-design"
+          - "accessibility"
+          - "performance-optimization"
+        supported_languages:
+          - "typescript"
+          - "javascript"
+        supported_frameworks:
+          - "react"
+          - "vue"
+          - "solid"
+          - "svelte"
+        output_artifacts:
+          - "ui-components"
+          - "pages"
+          - "layouts"
+          - "styles"
+        dependencies:
+          - "api-types-from-backend"
+        estimated_duration_minutes: 60
+        can_parallelize: true
+        
+      - id: "database-schema-architect"
+        name: "Database Schema Designer"
+        capabilities:
+          - "schema-design"
+          - "migration-scripts"
+          - "index-optimization"
+          - "relationship-modeling"
+          - "data-normalization"
+        supported_databases:
+          - "postgresql"
+          - "mysql"
+          - "mongodb"
+          - "redis"
+        output_artifacts:
+          - "schema-definitions"
+          - "migration-files"
+          - "seed-data"
+          - "indexes"
+        dependencies: []
+        estimated_duration_minutes: 30
+        can_parallelize: true
+        
+      - id: "business-logic-developer"
+        name: "Business Logic Implementer"
+        capabilities:
+          - "domain-modeling"
+          - "service-layer-design"
+          - "workflow-implementation"
+          - "rule-engine-setup"
+          - "calculation-logic"
+        supported_languages:
+          - "typescript"
+          - "python"
+          - "rust"
+        output_artifacts:
+          - "service-classes"
+          - "domain-models"
+          - "business-rules"
+          - "workflows"
+        dependencies:
+          - "database-schema-architect"
+          - "backend-api-specialist"
+        estimated_duration_minutes: 60
+        can_parallelize: false
+        
+      - id: "integration-specialist"
+        name: "Third-Party Integration Developer"
+        capabilities:
+          - "external-api-integration"
+          - "webhook-handling"
+          - "event-streaming"
+          - "message-queue-setup"
+          - "data-synchronization"
+        supported_protocols:
+          - "rest"
+          - "graphql"
+          - "grpc"
+          - "websocket"
+          - "amqp"
+        output_artifacts:
+          - "integration-adapters"
+          - "webhook-handlers"
+          - "sync-jobs"
+          - "queue-consumers"
+        dependencies:
+          - "backend-api-specialist"
+        estimated_duration_minutes: 45
+        can_parallelize: true
+        
+      - id: "infrastructure-engineer"
+        name: "Infrastructure Setup Specialist"
+        capabilities:
+          - "container-configuration"
+          - "ci-cd-pipeline"
+          - "environment-setup"
+          - "secret-management"
+          - "monitoring-setup"
+        supported_tools:
+          - "docker"
+          - "kubernetes"
+          - "terraform"
+          - "github-actions"
+          - "gitlab-ci"
+        output_artifacts:
+          - "dockerfile"
+          - "docker-compose"
+          - "k8s-manifests"
+          - "ci-cd-workflows"
+          - "env-templates"
+        dependencies: []
+        estimated_duration_minutes: 30
+        can_parallelize: true
+        
+      - id: "data-pipeline-engineer"
+        name: "Data Pipeline Developer"
+        capabilities:
+          - "etl-pipeline-design"
+          - "data-transformation"
+          - "batch-processing"
+          - "stream-processing"
+          - "data-quality-checks"
+        supported_languages:
+          - "python"
+          - "sql"
+          - "rust"
+        output_artifacts:
+          - "pipeline-definitions"
+          - "transformation-scripts"
+          - "data-validators"
+          - "scheduling-configs"
+        dependencies:
+          - "database-schema-architect"
+        estimated_duration_minutes: 45
+        can_parallelize: true
+        
+      - id: "security-implementation-specialist"
+        name: "Security Features Developer"
+        capabilities:
+          - "authentication-implementation"
+          - "authorization-rules"
+          - "encryption-setup"
+          - "security-headers"
+          - "input-validation"
+        security_frameworks:
+          - "oauth2"
+          - "jwt"
+          - "saml"
+          - "rbac"
+          - "abac"
+        output_artifacts:
+          - "auth-middleware"
+          - "permission-guards"
+          - "security-configs"
+          - "validation-rules"
+        dependencies:
+          - "backend-api-specialist"
+          - "database-schema-architect"
+        estimated_duration_minutes: 45
+        can_parallelize: false
+
+  support:
+    description: "Agents that support development through coordination and quality"
+    agents:
+      - id: "communication-historian"
+        name: "Communication Hub & Historian"
+        capabilities:
+          - "message-relay"
+          - "conflict-detection"
+          - "dependency-tracking"
+          - "progress-monitoring"
+          - "decision-logging"
+        responsibilities:
+          - "Maintain agent registry"
+          - "Broker inter-agent messages"
+          - "Prevent branch conflicts"
+          - "Record all decisions"
+          - "Track dependencies"
+        output_artifacts:
+          - "agent-registry"
+          - "message-history"
+          - "conflict-reports"
+          - "decision-log"
+        always_active: true
+        
+      - id: "test-automation-engineer"
+        name: "Test Generator & Runner"
+        capabilities:
+          - "unit-test-generation"
+          - "integration-test-creation"
+          - "e2e-test-scenarios"
+          - "test-data-generation"
+          - "coverage-reporting"
+        supported_frameworks:
+          typescript:
+            - "jest"
+            - "vitest"
+            - "playwright"
+          python:
+            - "pytest"
+            - "unittest"
+            - "selenium"
+          rust:
+            - "cargo-test"
+            - "criterion"
+        output_artifacts:
+          - "test-suites"
+          - "test-fixtures"
+          - "test-configs"
+          - "coverage-reports"
+        dependencies:
+          - "all-development-agents"
+        estimated_duration_minutes: 30
+        can_parallelize: false
+        
+      - id: "documentation-maintainer"
+        name: "Documentation Generator"
+        capabilities:
+          - "api-doc-generation"
+          - "readme-creation"
+          - "architecture-diagrams"
+          - "user-guides"
+          - "inline-documentation"
+        documentation_formats:
+          - "markdown"
+          - "openapi"
+          - "jsdoc"
+          - "sphinx"
+          - "rustdoc"
+        output_artifacts:
+          - "api-docs"
+          - "readme-files"
+          - "architecture-docs"
+          - "user-guides"
+        dependencies:
+          - "all-development-agents"
+        estimated_duration_minutes: 20
+        can_parallelize: false
+
+wave_configurations:
+  wave_1_foundation:
+    description: "Build core infrastructure and data layer"
+    parallelization_groups:
+      - group_1_immediate:
+          - "database-schema-architect"
+          - "infrastructure-engineer"
+      - group_2_after_schema:
+          - "backend-api-specialist"
+          - "frontend-ui-engineer"
+          - "integration-specialist"
+    support_agents:
+      - "communication-historian"
+    estimated_duration: "2 hours"
+    
+  wave_2_features:
+    description: "Implement business logic and advanced features"
+    parallelization_groups:
+      - group_1:
+          - "business-logic-developer"
+          - "data-pipeline-engineer"
+          - "security-implementation-specialist"
+    support_agents:
+      - "communication-historian"
+      - "test-automation-engineer"
+    estimated_duration: "1.5 hours"
+    
+  wave_3_polish:
+    description: "Testing, documentation, and optimization"
+    parallelization_groups:
+      - group_1_sequential:
+          - "test-automation-engineer"
+          - "documentation-maintainer"
+    support_agents:
+      - "communication-historian"
+    estimated_duration: "30 minutes"
+
+compatibility_rules:
+  mutual_exclusions:
+    - ["frontend-ui-engineer", "backend-api-specialist"]  # Different skill sets
+    - ["database-schema-architect", "data-pipeline-engineer"]  # Sequential dependency
+    
+  required_pairs:
+    - ["business-logic-developer", "test-automation-engineer"]  # TDD approach
+    - ["security-implementation-specialist", "documentation-maintainer"]  # Security docs
+    
+  language_constraints:
+    typescript_only:
+      - "frontend-ui-engineer"
+    python_preferred:
+      - "data-pipeline-engineer"
+    any_language:
+      - "backend-api-specialist"
+      - "business-logic-developer"

@@ -1,0 +1,236 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "description": "Registry of available language and domain plugins for SAGE system",
+  "lastUpdated": "2025-07-01T00:00:00Z",
+  "plugins": {
+    "language": {
+      "python": {
+        "id": "lang-python",
+        "name": "Python Language Plugin",
+        "version": "3.12.0",
+        "description": "Python language support with advanced static analysis and runtime capabilities",
+        "status": "active",
+        "capabilities": [
+          "syntax_analysis",
+          "type_inference",
+          "ast_transformation",
+          "code_generation",
+          "testing_frameworks",
+          "package_management"
+        ],
+        "requirements": {
+          "minPythonVersion": "3.8",
+          "dependencies": ["ast", "typing", "dataclasses"]
+        },
+        "configuration": {
+          "linting": ["pylint", "flake8", "black"],
+          "testFrameworks": ["pytest", "unittest"],
+          "packageManagers": ["pip", "poetry", "conda"]
+        }
+      },
+      "javascript": {
+        "id": "lang-javascript",
+        "name": "JavaScript/TypeScript Language Plugin",
+        "version": "2.0.0",
+        "description": "JavaScript and TypeScript support with modern ES features",
+        "status": "active",
+        "capabilities": [
+          "es_modules",
+          "typescript_inference",
+          "jsx_support",
+          "bundler_integration",
+          "framework_detection"
+        ],
+        "requirements": {
+          "nodeVersion": ">=16.0.0",
+          "dependencies": ["typescript", "babel", "esbuild"]
+        },
+        "configuration": {
+          "frameworks": ["react", "vue", "angular", "svelte"],
+          "bundlers": ["webpack", "vite", "rollup"],
+          "linters": ["eslint", "prettier"]
+        }
+      },
+      "rust": {
+        "id": "lang-rust",
+        "name": "Rust Language Plugin",
+        "version": "1.75.0",
+        "description": "Rust language support with cargo integration",
+        "status": "active",
+        "capabilities": [
+          "ownership_analysis",
+          "lifetime_inference",
+          "macro_expansion",
+          "cargo_integration",
+          "unsafe_detection"
+        ],
+        "requirements": {
+          "rustVersion": ">=1.70.0",
+          "dependencies": ["cargo", "rustc", "clippy"]
+        }
+      },
+      "go": {
+        "id": "lang-go",
+        "name": "Go Language Plugin",
+        "version": "1.21.0",
+        "description": "Go language support with module management",
+        "status": "active",
+        "capabilities": [
+          "module_analysis",
+          "interface_detection",
+          "goroutine_analysis",
+          "test_generation"
+        ],
+        "requirements": {
+          "goVersion": ">=1.19",
+          "dependencies": ["go", "gopls"]
+        }
+      }
+    },
+    "domain": {
+      "web_development": {
+        "id": "domain-web",
+        "name": "Web Development Domain Plugin",
+        "version": "2.5.0",
+        "description": "Specialized patterns and tools for web development",
+        "status": "active",
+        "capabilities": [
+          "responsive_design",
+          "api_integration",
+          "state_management",
+          "performance_optimization",
+          "security_patterns"
+        ],
+        "patterns": [
+          "mvc",
+          "mvvm",
+          "component_based",
+          "serverless",
+          "jamstack"
+        ],
+        "tools": {
+          "frontend": ["react", "vue", "angular", "svelte"],
+          "backend": ["express", "fastapi", "django", "rails"],
+          "database": ["postgresql", "mongodb", "redis"],
+          "deployment": ["vercel", "netlify", "aws", "docker"]
+        }
+      },
+      "machine_learning": {
+        "id": "domain-ml",
+        "name": "Machine Learning Domain Plugin",
+        "version": "1.8.0",
+        "description": "ML/AI development patterns and best practices",
+        "status": "active",
+        "capabilities": [
+          "model_architecture",
+          "data_preprocessing",
+          "training_optimization",
+          "deployment_strategies",
+          "monitoring_setup"
+        ],
+        "frameworks": {
+          "deep_learning": ["pytorch", "tensorflow", "jax"],
+          "classical_ml": ["scikit-learn", "xgboost", "lightgbm"],
+          "nlp": ["transformers", "spacy", "nltk"],
+          "computer_vision": ["opencv", "detectron2", "yolo"]
+        },
+        "patterns": [
+          "pipeline_design",
+          "feature_engineering",
+          "model_versioning",
+          "experiment_tracking"
+        ]
+      },
+      "cloud_infrastructure": {
+        "id": "domain-cloud",
+        "name": "Cloud Infrastructure Domain Plugin",
+        "version": "3.0.0",
+        "description": "Cloud architecture and DevOps patterns",
+        "status": "active",
+        "capabilities": [
+          "infrastructure_as_code",
+          "container_orchestration",
+          "serverless_patterns",
+          "monitoring_setup",
+          "security_compliance"
+        ],
+        "providers": {
+          "aws": ["ec2", "lambda", "s3", "dynamodb", "eks"],
+          "gcp": ["compute", "functions", "storage", "firestore", "gke"],
+          "azure": ["vm", "functions", "blob", "cosmos", "aks"]
+        },
+        "tools": ["terraform", "kubernetes", "docker", "helm", "ansible"]
+      },
+      "data_engineering": {
+        "id": "domain-data",
+        "name": "Data Engineering Domain Plugin",
+        "version": "2.2.0",
+        "description": "Data pipeline and analytics patterns",
+        "status": "active",
+        "capabilities": [
+          "etl_pipelines",
+          "stream_processing",
+          "data_warehouse",
+          "data_quality",
+          "schema_evolution"
+        ],
+        "technologies": {
+          "batch": ["spark", "hadoop", "airflow", "dbt"],
+          "streaming": ["kafka", "flink", "kinesis", "pulsar"],
+          "storage": ["s3", "hdfs", "delta_lake", "iceberg"],
+          "analytics": ["presto", "snowflake", "bigquery", "redshift"]
+        }
+      },
+      "mobile_development": {
+        "id": "domain-mobile",
+        "name": "Mobile Development Domain Plugin",
+        "version": "1.5.0",
+        "description": "Mobile app development patterns for iOS and Android",
+        "status": "beta",
+        "capabilities": [
+          "cross_platform",
+          "native_performance",
+          "offline_first",
+          "push_notifications",
+          "app_store_deployment"
+        ],
+        "frameworks": {
+          "cross_platform": ["react_native", "flutter", "ionic"],
+          "native": ["swift", "kotlin", "objective_c", "java"],
+          "hybrid": ["capacitor", "cordova"]
+        }
+      }
+    }
+  },
+  "pluginSchema": {
+    "type": "object",
+    "required": ["id", "name", "version", "description", "status", "capabilities"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^(lang|domain)-[a-z_]+$"
+      },
+      "name": {
+        "type": "string"
+      },
+      "version": {
+        "type": "string",
+        "pattern": "^\\d+\\.\\d+\\.\\d+$"
+      },
+      "description": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["active", "beta", "deprecated", "inactive"]
+      },
+      "capabilities": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

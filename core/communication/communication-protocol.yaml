@@ -1,0 +1,239 @@
+# SAGE Communication Protocol Specification
+# Defines how agents communicate and coordinate within the SAGE system
+
+version: "1.0.0"
+protocol_name: "SAGE Agent Communication Protocol (SACP)"
+
+communication_channels:
+  message_queue:
+    description: "Asynchronous message passing between agents"
+    location: "core/communication/message-queue/"
+    format: "markdown-with-yaml-frontmatter"
+    
+  agent_registry:
+    description: "Real-time tracking of active agents"
+    location: "core/communication/agent-registry.json"
+    update_frequency: "on-change"
+    
+  conflict_log:
+    description: "Track and resolve resource conflicts"
+    location: "core/communication/conflict-log.json"
+    
+  decision_history:
+    description: "Audit trail of all agent decisions"
+    location: "core/communication/history/"
+    retention: "permanent"
+
+message_format:
+  structure: |
+    ---
+    agent_id: [unique-identifier]
+    agent_type: [development|support]
+    wave: [1|2|3|4]
+    timestamp: [ISO-8601]
+    status: [initializing|working|blocked|completed|failed]
+    branch: [git-branch-name]
+    message_type: [status|request|response|alert|decision]
+    priority: [low|medium|high|critical]
+    ---
+    
+    ## Message Content
+    
+    [Markdown formatted message body]
+    
+    ### Working On
+    - [List of files/components]
+    
+    ### Dependencies
+    - [Required inputs from other agents]
+    
+    ### Blockers
+    - [Any blocking issues]
+    
+    ### Next Steps
+    - [Planned actions]
+
+message_types:
+  status_update:
+    description: "Regular progress updates"
+    frequency: "every 15 minutes or on significant progress"
+    required_fields:
+      - agent_id
+      - status
+      - working_on
+      - progress_percentage
+      
+  dependency_request:
+    description: "Request artifacts from another agent"
+    required_fields:
+      - agent_id
+      - target_agent_id
+      - required_artifacts
+      - deadline
+      - priority
+      
+  conflict_alert:
+    description: "Notify of resource conflicts"
+    required_fields:
+      - agent_id
+      - conflict_type
+      - affected_resources
+      - proposed_resolution
+      
+  completion_notice:
+    description: "Signal task completion"
+    required_fields:
+      - agent_id
+      - completed_artifacts
+      - output_locations
+      - test_results
+      - next_agent_handoff
+
+conflict_prevention:
+  branch_locking:
+    description: "Prevent multiple agents on same branch"
+    implementation: |
+      {
+        "branch_name": {
+          "locked_by": "agent_id",
+          "locked_at": "timestamp",
+          "expires_at": "timestamp"
+        }
+      }
+      
+  file_locking:
+    description: "Prevent concurrent file modifications"
+    granularity: "file-level"
+    lock_duration: "until commit or 2 hours"
+    
+  dependency_validation:
+    description: "Ensure dependencies are met before work begins"
+    check_frequency: "before each task start"
+
+communication_flow:
+  agent_initialization:
+    steps:
+      - "Register with communication hub"
+      - "Declare capabilities and requirements"
+      - "Receive assigned tasks and dependencies"
+      - "Acknowledge and create working branch"
+      
+  during_execution:
+    steps:
+      - "Send status updates every 15 minutes"
+      - "Check message queue for requests"
+      - "Report any blockers immediately"
+      - "Update working file list on changes"
+      
+  task_completion:
+    steps:
+      - "Send completion notice"
+      - "Push branch to remote"
+      - "Create pull request"
+      - "Update agent registry as 'completed'"
+      - "Archive decision history"
+
+example_messages:
+  status_update: |
+    ---
+    agent_id: backend-api-specialist-001
+    agent_type: development
+    wave: 1
+    timestamp: 2024-12-31T10:30:00Z
+    status: working
+    branch: feat/wave1-api-routes-20241231
+    message_type: status
+    priority: medium
+    ---
+    
+    ## Status Update
+    
+    Currently implementing RESTful API endpoints for user management.
+    
+    ### Working On
+    - src/api/routes/users.py
+    - src/api/routes/auth.py
+    - src/api/middleware/authentication.py
+    
+    ### Dependencies
+    - User schema from database-schema-architect (received ✓)
+    - JWT configuration from security-specialist (pending)
+    
+    ### Blockers
+    - None
+    
+    ### Next Steps
+    - Complete user CRUD endpoints
+    - Implement authentication middleware
+    - Add input validation
+    
+    Progress: 65%
+    
+  dependency_request: |
+    ---
+    agent_id: frontend-ui-engineer-002
+    agent_type: development
+    wave: 1
+    timestamp: 2024-12-31T11:00:00Z
+    status: blocked
+    branch: feat/wave1-ui-components-20241231
+    message_type: request
+    priority: high
+    ---
+    
+    ## Dependency Request
+    
+    Need API type definitions to properly type the frontend components.
+    
+    ### Requesting From
+    - Agent: backend-api-specialist-001
+    
+    ### Required Artifacts
+    - TypeScript interface definitions for:
+      - User model
+      - Auth response types
+      - API error formats
+    
+    ### Deadline
+    - Needed by: 2024-12-31T12:00:00Z
+    
+    ### Impact if Delayed
+    - Frontend development will use temporary 'any' types
+    - Will require refactoring once types are available
+
+historian_agent_specification:
+  role: "Central coordinator and decision recorder"
+  always_active: true
+  
+  responsibilities:
+    registry_management:
+      - "Track all active agents and their status"
+      - "Monitor agent health and progress"
+      - "Detect stalled or failed agents"
+      
+    message_brokering:
+      - "Route messages between agents"
+      - "Ensure message delivery"
+      - "Handle broadcast messages"
+      
+    conflict_resolution:
+      - "Detect resource conflicts early"
+      - "Propose resolution strategies"
+      - "Escalate unresolved conflicts"
+      
+    decision_logging:
+      - "Record all significant decisions"
+      - "Track rationale for choices"
+      - "Maintain audit trail"
+      
+    progress_reporting:
+      - "Aggregate progress across all agents"
+      - "Identify bottlenecks"
+      - "Generate wave completion reports"
+      
+  implementation_notes: |
+    The Communication/Historian agent can be implemented as:
+    1. A separate Claude chat session monitoring the message queue
+    2. A script that processes messages periodically
+    3. A human operator following the protocol
+    4. An automated service (future enhancement)
