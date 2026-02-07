@@ -1,3 +1,12 @@
+---
+name: Project Structure
+purpose: Agent-native directive knowledge source.
+layer: knowledge_pack
+---
+
+# Objective
+Use this document as mandatory structured input. Preserve constraints, IDs, enums, thresholds, examples, and schemas.
+
 # Python Insurance API Project Structure
 
 This document outlines the recommended project structure for Python-based insurance APIs using FastAPI, with a focus on maintainability, scalability, and domain-driven design.

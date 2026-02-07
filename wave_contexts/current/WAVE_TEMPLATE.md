@@ -1,61 +1,108 @@
-# Wave Execution Context Template
+---
+name: SAGE Phase/Wave Plan Template
+purpose: Template for generated implementation plans that satisfy SAGE planning output contract.
+layer: execution_template
+constraints:
+  - phases >= 7
+  - waves_per_phase >= 5
+  - milestones_per_phase = 4
+  - tasks_per_milestone = 15
+  - strict sequencing for milestones and tasks
+---
 
-## Wave Information
-- **Wave Number**: [1|2|3]
-- **Wave Focus**: [Foundation|Features|Polish]
-- **Start Time**: [ISO-8601 timestamp]
-- **Target Duration**: [2 hours|1 hour|30 minutes]
-- **Parallelization Level**: [Maximum|Moderate|Minimal]
+# Objective
+Generate a phase and wave execution plan that satisfies the planning output contract and gate policy.
 
-## Pre-Wave Context Synthesis
+## Contract Header
+- Plan ID: [plan-id]
+- Generated At: [ISO-8601]
+- Source Roadmap: [path]
+- Phase Count: [>=7]
+- Notes: [why expanded above recommended range if applicable]
 
-### Project Understanding
-*Summary of project requirements from source_documents/*
+## Phase Template
+Repeat this section for each phase.
 
-### Technical Stack
-*Key technologies and frameworks being used*
+### Phase Metadata
+- Phase ID: [P01]
+- Phase Name: [name]
+- Objective: [directive]
+- Wave Count: [>=5]
+- Milestone Count: [must be 4]
 
-### Domain Specifics
-*Domain-specific requirements and constraints*
+### Waves
+Repeat for each wave in phase.
 
-## Agent Deployment Plan
+| Wave ID | Focus | Fan-Out Lanes | Hard Dependencies | Fan-In Gate |
+|--------|-------|---------------|-------------------|-------------|
+| P01-W01 | [focus] | [lane-a, lane-b, lane-c] | [deps] | [gate-id] |
 
-### Development Agents
-| Agent ID | Type | Assigned Tasks | Dependencies | Branch Name |
-|----------|------|----------------|--------------|-------------|
-| [agent-001] | [type] | [tasks] | [deps] | [branch] |
+### Milestones
+Milestones are sequential and fixed to 4.
 
-### Support Agents
-| Agent ID | Role | Responsibilities | Always Active |
-|----------|------|------------------|---------------|
-| communication-historian | Coordinator | Message relay, conflict detection | Yes |
+#### Milestone P01-M1
+- Objective: [directive]
+- Sequencing: [strict]
+- Tasks: [must include 15 tasks T01..T15]
 
-## Dependency Graph
-```mermaid
-graph TD
-    A[database-schema] --> B[backend-api]
-    A --> C[data-pipeline]
-    B --> D[frontend-ui]
-    B --> E[business-logic]
-```
+| Task ID | Description | Owner | Dependencies | Done Criteria |
+|--------|-------------|-------|--------------|---------------|
+| P01-M1-T01 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T02 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T03 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T04 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T05 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T06 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T07 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T08 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T09 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T10 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T11 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T12 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T13 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T14 | [task] | [owner] | [deps] | [criteria] |
+| P01-M1-T15 | [task] | [owner] | [deps] | [criteria] |
 
-## Success Criteria
-- [ ] All planned components created
-- [ ] Tests passing
-- [ ] No integration conflicts
-- [ ] Documentation updated
-- [ ] PRs created and reviewed
+- Unit Gate: [required]
+- Integration Gate: [required post-init]
 
-## Risk Mitigation
-| Risk | Mitigation Strategy |
-|------|-------------------|
-| [Identified risk] | [How to handle] |
+#### Milestone P01-M2
+- Objective: [directive]
+- Tasks: [15 tasks required]
+- Unit Gate: [required]
+- Integration Gate: [required]
 
-## Post-Wave Checklist
-- [ ] All agents reported completion
-- [ ] Branches pushed to remote
-- [ ] PRs created
-- [ ] Conflicts resolved
-- [ ] Integration tested
-- [ ] Patterns learned documented
-- [ ] Next wave prepared
+#### Milestone P01-M3
+- Objective: [directive]
+- Tasks: [15 tasks required]
+- Unit Gate: [required]
+- Integration Gate: [required]
+
+#### Milestone P01-M4
+- Objective: [directive]
+- Tasks: [15 tasks required]
+- Unit Gate: [required]
+- Integration Gate: [required]
+
+### Phase Gates
+- Phase-End E2E: [required]
+- Rolling Inter-Phase Integration: [required for phase > 1]
+- Rolling Cumulative E2E: [required for phase > 1]
+
+## Global Gate Matrix
+| Gate ID | Scope | Trigger | Required | Status |
+|--------|-------|---------|----------|--------|
+| unit-gate | milestone | milestone completion | yes | [ ] |
+| integration-gate | milestone | post-init milestone completion | yes | [ ] |
+| phase-e2e | phase | phase completion | yes | [ ] |
+| rolling-inter-phase | phase | phase>1 completion | yes | [ ] |
+| rolling-cumulative-e2e | phase | phase>1 completion | yes | [ ] |
+
+## Validation Checklist
+- [ ] phase count >= 7
+- [ ] every phase wave count >= 5
+- [ ] every phase has exactly 4 milestones
+- [ ] every milestone has exactly 15 tasks
+- [ ] milestones strictly sequential
+- [ ] tasks strictly sequential
+- [ ] all required gates declared

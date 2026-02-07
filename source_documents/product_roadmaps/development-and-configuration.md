@@ -1,3 +1,12 @@
+---
+name: Development And Configuration
+purpose: Agent-native directive knowledge source.
+layer: knowledge_pack
+---
+
+# Objective
+Use this document as mandatory structured input. Preserve constraints, IDs, enums, thresholds, examples, and schemas.
+
 # Development and Configuration Phase
 ## Implementation Plan - Phase 2
 

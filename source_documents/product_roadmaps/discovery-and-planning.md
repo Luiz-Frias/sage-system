@@ -1,3 +1,12 @@
+---
+name: Discovery And Planning
+purpose: Agent-native directive knowledge source.
+layer: knowledge_pack
+---
+
+# Objective
+Use this document as mandatory structured input. Preserve constraints, IDs, enums, thresholds, examples, and schemas.
+
 # Discovery and Planning Phase
 ## Implementation Plan - Phase 1
 

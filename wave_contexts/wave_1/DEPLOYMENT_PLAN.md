@@ -1,106 +1,77 @@
-# Wave 1 Deployment Plan - P&C Policy Decision System
+---
+name: SAGE Deployment Plan Example (Contract-Compliant)
+purpose: Reference example showing how generated plans encode 7+ phases with 5+ waves and strict milestone/task gates.
+layer: example_plan
+---
 
-## Project Context
-Building an enterprise-grade Property & Casualty (P&C) policy decision and management system using modern Python stack with focus on performance, async I/O, and parallel processing.
+# Generated Plan Snapshot
 
-## Agent Deployments
+## Contract Summary
+- Phase Count: 7
+- Waves per Phase: 5
+- Milestones per Phase: 4
+- Tasks per Milestone: 15
+- Rolling Gates: enabled after phase 1
 
-### Agent 1: Python Patterns Developer
-**Branch**: feat/wave1-python-patterns-20241231
-**Duration**: 30 minutes
-**Dependencies**: None
-**Files to Create**:
-- languages/python/patterns/repository-pattern.md
-- languages/python/patterns/async-patterns.md
-- languages/python/patterns/context-managers.md
-- languages/python/patterns/decorators.md
-- languages/python/patterns/dataclasses.md
+## Phase P01 - Repository Initialization and Baseline Contracts
 
-### Agent 2: Python Guardrails Developer
-**Branch**: feat/wave1-python-guardrails-20241231
-**Duration**: 30 minutes
-**Dependencies**: None
-**Files to Create**:
-- languages/python/guardrails/type-safety.md
-- languages/python/guardrails/error-handling.md
-- languages/python/guardrails/performance.md
-- languages/python/guardrails/security.md
-- languages/python/guardrails/testing.md
+### Waves (P01)
+| Wave ID | Focus | Fan-Out Lanes | Dependencies | Fan-In Gate |
+|--------|-------|---------------|--------------|-------------|
+| P01-W01 | Repo bootstrap | scaffolding, config, docs, validation, qa | none | gate-p01w01 |
+| P01-W02 | Core contract files | engine, config, interface, template, qa | P01-W01 | gate-p01w02 |
+| P01-W03 | Context materialization | source ingest, dependency map, risk map, ownership map, qa | P01-W02 | gate-p01w03 |
+| P01-W04 | Test harness initialization | unit harness, integration harness, e2e harness, reporting, qa | P01-W03 | gate-p01w04 |
+| P01-W05 | Phase closeout | fan-in, reconciliation, gate report, release note, qa | P01-W04 | gate-p01w05 |
 
-### Agent 3: Python Templates Developer
-**Branch**: feat/wave1-python-templates-20241231
-**Duration**: 45 minutes
-**Dependencies**: None
-**Files to Create**:
-- languages/python/templates/fastapi-starter/
-- languages/python/templates/configs/mypy.ini
-- languages/python/templates/configs/pytest.ini
-- languages/python/templates/configs/pyrightconfig.json
-- languages/python/templates/project-structure.md
+### Milestone P01-M1 (15 Tasks)
+| Task ID | Description | Owner | Dependencies | Done Criteria |
+|--------|-------------|-------|--------------|---------------|
+| P01-M1-T01 | Validate repository baseline | supervisor | none | baseline report emitted |
+| P01-M1-T02 | Build initial dependency graph | analysis lane | T01 | graph saved |
+| P01-M1-T03 | Define lane ownership map | orchestration lane | T02 | ownership map saved |
+| P01-M1-T04 | Create wave branch matrix | orchestration lane | T03 | branch matrix approved |
+| P01-M1-T05 | Define gate matrix | qa lane | T04 | gate matrix saved |
+| P01-M1-T06 | Run unit harness smoke | qa lane | T05 | unit smoke green |
+| P01-M1-T07 | Initialize integration harness | qa lane | T06 | integration harness ready |
+| P01-M1-T08 | Validate communication channels | comms lane | T05 | channel checks green |
+| P01-M1-T09 | Validate conflict log wiring | comms lane | T08 | conflict checks green |
+| P01-M1-T10 | Capture risk register | analysis lane | T03 | risk register saved |
+| P01-M1-T11 | Capture mitigation matrix | analysis lane | T10 | mitigation matrix saved |
+| P01-M1-T12 | Execute lane fan-in dry run | orchestration lane | T04-T11 | fan-in dry run pass |
+| P01-M1-T13 | Execute milestone unit gate | qa lane | T12 | unit gate pass |
+| P01-M1-T14 | Execute milestone integration gate | qa lane | T13 | integration gate pass |
+| P01-M1-T15 | Publish milestone checkpoint | supervisor | T14 | checkpoint published |
 
-### Agent 4: Insurance Domain Architect
-**Branch**: feat/wave1-insurance-domain-20241231
-**Duration**: 60 minutes
-**Dependencies**: Source documents
-**Files to Create**:
-- domains/insurance/policy-decision-architecture.md
-- domains/insurance/data-models.yaml
-- domains/insurance/business-rules.yaml
-- domains/insurance/compliance-matrix.yaml
-- domains/insurance/api-specifications.yaml
+### Milestone P01-M2
+- 15 sequential tasks required.
+- Unit gate required.
+- Integration gate required.
 
-### Agent 5: Core Engine Developer
-**Branch**: feat/wave1-core-engine-20241231
-**Duration**: 45 minutes
-**Dependencies**: None
-**Files to Create**:
-- core/engine/wave-orchestrator.py
-- core/engine/agent-lifecycle.py
-- core/engine/dependency-resolver.py
-- core/engine/pattern-learner.py
-- core/interfaces/ILanguagePlugin.yaml
-- core/interfaces/IDomainPlugin.yaml
-- core/interfaces/IAgent.yaml
-- core/interfaces/ICommunicationBus.yaml
+### Milestone P01-M3
+- 15 sequential tasks required.
+- Unit gate required.
+- Integration gate required.
 
-### Agent 6: Insurance Implementation Specialist
-**Branch**: feat/wave1-insurance-implementation-20241231
-**Duration**: 60 minutes
-**Dependencies**: Insurance Domain Architect
-**Files to Create**:
-- domains/insurance/templates/policy-service/
-- domains/insurance/templates/underwriting-engine/
-- domains/insurance/templates/claims-processor/
-- domains/insurance/templates/rating-engine/
-- domains/insurance/README.md
+### Milestone P01-M4
+- 15 sequential tasks required.
+- Unit gate required.
+- Integration gate required.
 
-### Agent 7: Pattern Learning System
-**Branch**: feat/wave1-pattern-learning-20241231
-**Duration**: 30 minutes
-**Dependencies**: Core Engine Developer
-**Files to Create**:
-- core/registry/learned_patterns.json
-- core/registry/pattern-schema.yaml
-- core/registry/success-metrics.yaml
+### Phase P01 Gates
+- Phase-End E2E: required.
+- Rolling Inter-Phase Integration: not required for phase 1.
+- Rolling Cumulative E2E: not required for phase 1.
 
-### Support Agents
+## Phase P02..P07
+For each subsequent phase:
+1. Keep wave count >= 5.
+2. Keep milestone count exactly 4.
+3. Keep task count exactly 15 per milestone.
+4. Enforce rolling inter-phase integration and cumulative E2E gates.
 
-### Communication Historian (Always Active)
-**Role**: Monitor and coordinate all agent activities
-**Responsibilities**:
-- Monitor core/communication/message-queue/
-- Update agent-registry.json
-- Prevent conflicts
-- Relay dependencies
-
-## Execution Timeline
-1. Parallel Group 1 (T+0): Agents 1, 2, 3, 5, 7
-2. Parallel Group 2 (T+30): Agent 4
-3. Sequential (T+60): Agent 6
-
-## Success Criteria
-- All files created and properly structured
-- No conflicts between agents
-- Insurance domain fully specified for P&C policy decisions
-- Python patterns cover async, parallel processing, and performance
-- Core engine provides orchestration capabilities
+## Global Success Criteria
+- [ ] Contract cardinality is satisfied for all generated phases.
+- [ ] All milestone unit and integration gates pass.
+- [ ] All phase-end E2E gates pass.
+- [ ] All rolling gates pass after phase 1.

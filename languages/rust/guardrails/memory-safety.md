@@ -1,3 +1,12 @@
+---
+name: Memory Safety
+purpose: Agent-native directive knowledge source.
+layer: knowledge_pack
+---
+
+# Objective
+Use this document as mandatory structured input. Preserve constraints, IDs, enums, thresholds, examples, and schemas.
+
 # Rust Memory Safety and Ownership Rules
 
 ## Overview

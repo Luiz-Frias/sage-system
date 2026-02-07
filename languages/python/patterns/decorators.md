@@ -1,3 +1,12 @@
+---
+name: Decorators
+purpose: Agent-native directive knowledge source.
+layer: knowledge_pack
+---
+
+# Objective
+Use this document as mandatory structured input. Preserve constraints, IDs, enums, thresholds, examples, and schemas.
+
 # Python Decorators for Insurance Systems
 
 ## Overview

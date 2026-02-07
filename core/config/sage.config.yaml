@@ -1,115 +1,118 @@
 # SAGE System Configuration
-# Core configuration for the Supervisor Agent-Generated Engineering system
+# Core supervisor configuration for generated implementation plans.
 
-version: "1.0.0"
+version: "1.1.0"
 system_name: "SAGE"
 
 core_structure:
   required_directories:
-    # These directories MUST be present in every SAGE project
-    - source_documents/      # Domain-specific requirements and architecture
-    - core/                  # SAGE orchestration engine
-    - languages/             # Language-specific plugins
-    - domains/              # Domain templates (insurance, ecommerce, etc)
-    
+    - source_documents/
+    - core/
+    - languages/
+    - domains/
+    - wave_contexts/
+
   essential_files:
     - MASTER_INSTRUCTION_SET.md
-    - example_CLAUDE.md
+    - core/engine/wave-orchestrator.yaml
+    - core/engine/planning-output-contract.yaml
     - core/registry/agent-matrix.yaml
     - core/communication/communication-protocol.yaml
 
 project_initialization:
   on_clone:
     steps:
-      - "Verify source_documents/ exists and is populated"
-      - "Initialize agent registry"
-      - "Create communication channels"
-      - "Set up wave contexts directory"
-      
+      - "Verify required directories and core files exist."
+      - "Initialize communication registry and conflict log."
+      - "Load supervisor planning contract and gate policy."
+      - "Prepare wave_contexts/current templates."
+
   required_context_files:
-    # These files in source_documents/ provide essential context
     business_context:
-      - "product-roadmap.md"
-      - "tech-stack.md"
-      - "product_architectures/business-architecture.md"
-      
+      - "source_documents/product-roadmap.md"
+      - "source_documents/tech-stack.md"
+      - "source_documents/product_architectures/business-architecture.md"
+
     technical_context:
-      - "product_architectures/application-architecture.md"
-      - "product_architectures/data-architecture.md"
-      - "product_architectures/technology-architecture.md"
-      
+      - "source_documents/product_architectures/application-architecture.md"
+      - "source_documents/product_architectures/data-architecture.md"
+      - "source_documents/product_architectures/technology-architecture.md"
+
     requirements_context:
-      - "product_requirements/data-driven-prd-template.md"
-      - "product_requirements/[domain]-specific-prd.md"
-      
+      - "source_documents/product_requirements/data-driven-prd-template.md"
+      - "source_documents/product_requirements/insurance-specific-prd.md"
+
     implementation_context:
-      - "product_roadmaps/discovery-and-planning.md"
-      - "product_roadmaps/development-and-configuration.md"
-      - "product_roadmaps/deployment-and-go-live.md"
+      - "source_documents/product_roadmaps/discovery-and-planning.md"
+      - "source_documents/product_roadmaps/development-and-configuration.md"
+      - "source_documents/product_roadmaps/deployment-and-go-live.md"
+
+supervisor_plan_policy:
+  apply_contract_to_generated_plans_only: true
+
+  generated_plan_contract:
+    phase_count:
+      minimum: 7
+      recommended_range: [7, 12]
+      unbounded: true
+
+    waves_per_phase:
+      minimum: 5
+      recommended_range: [5, 10]
+      unbounded: true
+
+    milestones_per_phase:
+      exact: 4
+      sequence: "strict"
+
+    tasks_per_milestone:
+      exact: 15
+      sequence: "strict"
+
+  rolling_test_policy:
+    enabled: true
+    start_after_phase: 1
+    required_gates:
+      - "unit_per_milestone"
+      - "integration_per_post_init_milestone"
+      - "phase_end_e2e"
+      - "inter_phase_integration"
+      - "cumulative_e2e"
 
 supervisor_context_gathering:
-  pre_wave_analysis:
-    description: "What supervisor must do before deploying agents"
+  pre_plan_analysis:
     steps:
       - read: "MASTER_INSTRUCTION_SET.md"
+      - read: "core/engine/planning-output-contract.yaml"
+      - read: "core/engine/wave-orchestrator.yaml"
       - read: "All files in source_documents/"
-      - analyze: "Project requirements and architecture"
-      - plan: "Wave execution strategy"
-      - create: "Agent deployment instructions"
-      
+      - analyze: "Roadmap, dependency graph, and delivery risk"
+      - plan: "Phase-wave-milestone-task hierarchy"
+
   context_synthesis:
     outputs:
-      - "wave_contexts/current/PROJECT_CONTEXT.md"
+      - "wave_contexts/current/WAVE_TEMPLATE.md"
+      - "wave_contexts/current/PHASE_PLAN.md"
       - "wave_contexts/current/DEPLOYMENT_PLAN.md"
-      - "wave_contexts/current/AGENT_ASSIGNMENTS.md"
-
-domain_templates:
-  insurance:
-    source_documents:
-      - "insurance-specific-prd.md"
-      - "insurance-compliance-matrix.md"
-      - "state-regulatory-requirements.md"
-      
-  ecommerce:
-    source_documents:
-      - "ecommerce-specific-prd.md"
-      - "payment-integration-requirements.md"
-      - "inventory-management-specs.md"
-      
-  saas:
-    source_documents:
-      - "saas-specific-prd.md"
-      - "multi-tenancy-requirements.md"
-      - "subscription-billing-specs.md"
 
 language_plugins:
   typescript:
     patterns_location: "languages/typescript/patterns/"
     templates_location: "languages/typescript/templates/"
     guardrails_location: "languages/typescript/guardrails/"
-    
+
   python:
     patterns_location: "languages/python/patterns/"
     templates_location: "languages/python/templates/"
     guardrails_location: "languages/python/guardrails/"
-    
+
   rust:
     patterns_location: "languages/rust/patterns/"
     templates_location: "languages/rust/templates/"
     guardrails_location: "languages/rust/guardrails/"
 
-wave_execution:
-  wave_1:
-    focus: "Foundation - 80% build"
-    duration: "2 hours max"
-    parallelization: "maximum"
-    
-  wave_2:
-    focus: "Features - 90% build"
-    duration: "1 hour"
-    parallelization: "moderate"
-    
-  wave_3:
-    focus: "Polish - 100% build"
-    duration: "30 minutes"
-    parallelization: "minimal"
+planning_defaults:
+  baseline_phase_count: 9
+  baseline_waves_per_phase: 7
+  milestone_count_per_phase: 4
+  task_count_per_milestone: 15

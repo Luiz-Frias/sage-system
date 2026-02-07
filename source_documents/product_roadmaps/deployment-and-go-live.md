@@ -1,3 +1,12 @@
+---
+name: Deployment And Go Live
+purpose: Agent-native directive knowledge source.
+layer: knowledge_pack
+---
+
+# Objective
+Use this document as mandatory structured input. Preserve constraints, IDs, enums, thresholds, examples, and schemas.
+
 # Phase 3: Deployment and Go-Live
 ## P&C Insurance Platform Implementation Roadmap
 

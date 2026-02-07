@@ -66,6 +66,10 @@ manifest:
               requires_confirmation:
                 type: boolean
                 default: false
+              supports_generated_plan_contract:
+                type: boolean
+                default: false
+                description: "True when capability emits implementation plans that must satisfy the SAGE planning output contract."
     
     dependencies:
       type: object
@@ -143,6 +147,80 @@ manifest:
           type: integer
           minimum: 0
           description: "Persistent storage in MB"
+
+    generated_plan_contract:
+      type: object
+      description: "Contract for capabilities that generate implementation plans."
+      properties:
+        applies_to_generated_plans_only:
+          type: boolean
+          default: true
+        phase_count:
+          type: object
+          properties:
+            minimum:
+              type: integer
+              const: 7
+            recommended_min:
+              type: integer
+              const: 7
+            recommended_max:
+              type: integer
+              const: 12
+            unbounded:
+              type: boolean
+              const: true
+        waves_per_phase:
+          type: object
+          properties:
+            minimum:
+              type: integer
+              const: 5
+            recommended_min:
+              type: integer
+              const: 5
+            recommended_max:
+              type: integer
+              const: 10
+            unbounded:
+              type: boolean
+              const: true
+        milestones_per_phase:
+          type: object
+          properties:
+            exact:
+              type: integer
+              const: 4
+            sequence:
+              type: string
+              const: "strict"
+        tasks_per_milestone:
+          type: object
+          properties:
+            exact:
+              type: integer
+              const: 15
+            sequence:
+              type: string
+              const: "strict"
+        gates:
+          type: object
+          properties:
+            unit_gate_every_milestone:
+              type: boolean
+              const: true
+            integration_gate_post_repo_init:
+              type: boolean
+              const: true
+            phase_end_e2e:
+              type: boolean
+              const: true
+            rolling_inter_phase_integration_after_phase_1:
+              type: boolean
+              const: true
+            rolling_cumulative_e2e_after_phase_1:
+              type: boolean
+              const: true
 
 # Core agent interface methods
 required_methods:
@@ -224,6 +302,146 @@ required_methods:
               type: string
             details:
               type: object
+
+  generate_implementation_plan:
+    description: "Generate an implementation plan artifact that satisfies the SAGE planning output contract."
+    parameters:
+      - name: project_context
+        type: object
+        description: "Domain, architecture, constraints, and roadmap context."
+      - name: planning_constraints
+        type: object
+        description: "Overrides and optional guidance for generated plans."
+        properties:
+          min_phase_count:
+            type: integer
+            minimum: 7
+          recommended_phase_count_max:
+            type: integer
+            minimum: 12
+          min_waves_per_phase:
+            type: integer
+            minimum: 5
+          recommended_waves_per_phase_max:
+            type: integer
+            minimum: 10
+          allow_phase_expansion:
+            type: boolean
+            default: true
+          allow_wave_expansion:
+            type: boolean
+            default: true
+      - name: output_format
+        type: string
+        enum: ["markdown", "yaml", "json", "mixed"]
+        default: "markdown"
+    returns:
+      type: object
+      properties:
+        success:
+          type: boolean
+        plan:
+          type: object
+          description: "Generated plan artifact."
+          required: ["phases"]
+          properties:
+            phases:
+              type: array
+              minItems: 7
+              items:
+                type: object
+                required: ["phase_id", "waves", "milestones"]
+                properties:
+                  phase_id:
+                    type: string
+                  phase_name:
+                    type: string
+                  objective:
+                    type: string
+                  waves:
+                    type: array
+                    minItems: 5
+                    items:
+                      type: object
+                      required: ["wave_id", "focus", "fan_out_lanes", "fan_in_gate"]
+                      properties:
+                        wave_id:
+                          type: string
+                        focus:
+                          type: string
+                        fan_out_lanes:
+                          type: array
+                          items:
+                            type: string
+                        fan_in_gate:
+                          type: object
+                  milestones:
+                    type: array
+                    minItems: 4
+                    maxItems: 4
+                    items:
+                      type: object
+                      required: ["milestone_id", "tasks", "unit_gate", "integration_gate"]
+                      properties:
+                        milestone_id:
+                          type: string
+                        tasks:
+                          type: array
+                          minItems: 15
+                          maxItems: 15
+                          items:
+                            type: object
+                            required: ["task_id", "description", "done_criteria"]
+                            properties:
+                              task_id:
+                                type: string
+                              description:
+                                type: string
+                              owner:
+                                type: string
+                              dependencies:
+                                type: array
+                                items:
+                                  type: string
+                              done_criteria:
+                                type: array
+                                items:
+                                  type: string
+                        unit_gate:
+                          type: object
+                        integration_gate:
+                          type: object
+                  phase_gates:
+                    type: object
+                    properties:
+                      phase_end_e2e:
+                        type: object
+                      rolling_inter_phase_integration:
+                        type: object
+                      rolling_cumulative_e2e:
+                        type: object
+        validation:
+          type: object
+          properties:
+            contract_conformance:
+              type: boolean
+            issues:
+              type: array
+              items:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+        error:
+          type: object
+          optional: true
+          properties:
+            code:
+              type: string
+            message:
+              type: string
   
   get_status:
     description: "Get current agent status and health"

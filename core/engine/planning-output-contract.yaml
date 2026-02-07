@@ -1,0 +1,145 @@
+# SAGE Planning Output Contract
+# Contract applies to supervisor-generated implementation plans.
+# Contract does not constrain migration mechanics used to evolve this repository.
+
+version: "1.0.0"
+specification_name: "Planning Output Contract"
+specification_type: "core_engine_contract"
+
+contract_scope:
+  applies_to: "generated_implementation_plan_artifacts"
+  excludes:
+    - "repository_migration_execution_plan"
+    - "one_off_maintenance_task_lists"
+
+cardinality:
+  phase_count:
+    minimum: 7
+    recommended_range: [7, 12]
+    unbounded: true
+    expansion_rule: "Expand beyond 12 when roadmap backlog is not exhausted."
+
+  waves_per_phase:
+    minimum: 5
+    recommended_range: [5, 10]
+    unbounded: true
+    expansion_rule: "Expand beyond 10 when dependency width or parallelizable scope requires."
+
+  milestones_per_phase:
+    exact: 4
+    sequence: "strict"
+    overlap_allowed: false
+
+  tasks_per_milestone:
+    exact: 15
+    sequence: "strict"
+    overlap_allowed: false
+
+required_structures:
+  phase:
+    required_fields:
+      - "phase_id"
+      - "phase_name"
+      - "objective"
+      - "waves"
+      - "milestones"
+      - "phase_gates"
+
+  wave:
+    required_fields:
+      - "wave_id"
+      - "focus"
+      - "fan_out_lanes"
+      - "fan_in_gate"
+      - "dependencies"
+
+  milestone:
+    required_fields:
+      - "milestone_id"
+      - "objective"
+      - "tasks"
+      - "unit_gate"
+      - "integration_gate"
+
+  task:
+    required_fields:
+      - "task_id"
+      - "description"
+      - "owner"
+      - "dependencies"
+      - "done_criteria"
+
+gates:
+  milestone:
+    unit_gate:
+      required: true
+      description: "Validate local logic, schema conformance, and deterministic behavior."
+
+    integration_gate:
+      required: true
+      start_rule: "Mandatory from first post-repo-init milestone."
+      description: "Validate cross-component contract compatibility and dependency integration."
+
+  phase:
+    end_to_end_gate:
+      required: true
+      description: "Validate end-to-end functionality for all completed milestones in current phase."
+
+  rolling:
+    inter_phase_integration:
+      required: true
+      starts_after_phase: 1
+      description: "Validate phase N against cumulative completed phases 1..N-1."
+
+    cumulative_end_to_end:
+      required: true
+      starts_after_phase: 1
+      description: "Run end-to-end across all completed phases after each phase completion."
+
+validation_rules:
+  - id: "CARD-PHASE-MIN"
+    rule: "phase_count >= 7"
+
+  - id: "CARD-WAVE-MIN"
+    rule: "for each phase: wave_count >= 5"
+
+  - id: "CARD-MILESTONE-EXACT"
+    rule: "for each phase: milestone_count == 4"
+
+  - id: "CARD-TASK-EXACT"
+    rule: "for each milestone: task_count == 15"
+
+  - id: "SEQ-MILESTONE-STRICT"
+    rule: "milestones are strictly sequential and non-overlapping"
+
+  - id: "SEQ-TASK-STRICT"
+    rule: "tasks are strictly ordered and non-overlapping"
+
+  - id: "GATE-MILESTONE-UNIT"
+    rule: "every milestone declares unit gate"
+
+  - id: "GATE-MILESTONE-INTEGRATION"
+    rule: "every post-init milestone declares integration gate"
+
+  - id: "GATE-PHASE-E2E"
+    rule: "every phase declares phase-end e2e gate"
+
+  - id: "GATE-ROLLING"
+    rule: "every phase after phase 1 declares rolling integration and cumulative e2e"
+
+output_vocabulary:
+  required_terms:
+    - "phase"
+    - "wave"
+    - "milestone"
+    - "task"
+    - "unit_gate"
+    - "integration_gate"
+    - "e2e_gate"
+    - "fan_out"
+    - "fan_in"
+
+  forbidden_patterns:
+    - "fixed_three_wave_only"
+    - "hard_cap_phase_count"
+    - "hard_cap_wave_count"

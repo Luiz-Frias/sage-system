@@ -1,264 +1,198 @@
 # SAGE Wave Orchestrator Specification
-# Language-agnostic specification for wave execution phases, parallelization rules, and timing
+# Supervisor runtime contract for dynamic phase/wave planning and execution.
 
-version: "1.0.0"
+version: "1.1.0"
 specification_name: "Wave Orchestrator"
 specification_type: "core_engine"
 
-wave_execution_model:
-  description: "Progressive build approach with increasing refinement"
-  philosophy: |
-    - Each wave builds upon the previous, adding layers of functionality
-    - Early waves maximize parallelization for rapid foundation building
-    - Later waves focus on integration and polish with reduced parallelization
-    - Time-boxed execution prevents analysis paralysis
-    
-  wave_characteristics:
-    wave_1:
-      name: "Foundation"
-      completion_target: "80%"
-      focus_areas:
-        - "Core infrastructure setup"
-        - "Database schema and models"
-        - "Basic API endpoints"
-        - "Authentication framework"
-        - "Essential UI components"
-      parallelization_strategy: "maximum"
-      agent_coordination: "minimal"
-      
-    wave_2:
-      name: "Features"
-      completion_target: "90%"
-      focus_areas:
-        - "Business logic implementation"
-        - "API integration"
-        - "UI feature completion"
-        - "Basic testing"
-        - "Error handling"
-      parallelization_strategy: "moderate"
-      agent_coordination: "increased"
-      
-    wave_3:
-      name: "Polish"
-      completion_target: "100%"
-      focus_areas:
-        - "Code refinement"
-        - "Performance optimization"
-        - "Comprehensive testing"
-        - "Documentation"
-        - "Deployment preparation"
-      parallelization_strategy: "minimal"
-      agent_coordination: "maximum"
+contract_dependency:
+  planning_output_contract: "core/engine/planning-output-contract.yaml"
+
+planning_mode:
+  strategy: "dynamic_phase_wave_generation"
+  objective: "Generate implementation plans that satisfy output contract cardinality and gate policy."
+  migration_note: "Contract applies to generated plans, not to the migration workflow that updates this repository."
+
+planning_output_contract:
+  apply_contract_to_generated_plans_only: true
+
+  phase_count:
+    minimum: 7
+    recommended_range: [7, 12]
+    unbounded: true
+    expansion_trigger:
+      - "roadmap_backlog_remaining"
+      - "high_risk_or_high_dependency_surface"
+
+  waves_per_phase:
+    minimum: 5
+    recommended_range: [5, 10]
+    unbounded: true
+    expansion_trigger:
+      - "parallelizable_scope_width"
+      - "cross_domain_dependency_volume"
+
+  milestones_per_phase:
+    exact: 4
+    sequence: "strict"
+
+  tasks_per_milestone:
+    exact: 15
+    sequence: "strict"
+
+plan_generation_algorithm:
+  phase_planning:
+    - "Ingest roadmap and dependency graph."
+    - "Emit initial phases in [7,12] range."
+    - "Append phases until backlog coverage == 100%."
+
+  wave_planning:
+    - "Decompose each phase into independent concern clusters."
+    - "Emit at least 5 waves per phase."
+    - "Expand wave count until critical-path depth and lane conflicts are acceptable."
+
+  milestone_planning:
+    - "Emit exactly 4 milestones per phase."
+    - "Enforce strict sequencing M1 -> M2 -> M3 -> M4."
+
+  task_planning:
+    - "Emit exactly 15 tasks per milestone."
+    - "Enforce strict sequencing T01 -> T15."
+    - "Attach dependencies and done criteria per task."
+
+fan_out_fan_in_model:
+  fan_out:
+    description: "Execute parallel lanes by separation of concerns within each wave."
+    required_lanes:
+      - "contract_updates"
+      - "logic_updates"
+      - "validation_and_tests"
+      - "integration_and_references"
+
+  fan_in:
+    description: "Merge lanes to wave gate, then wave gates to milestone gate, then milestone gates to phase gate."
+    merge_preconditions:
+      - "lane_unit_gate_passed"
+      - "lane_integration_gate_passed"
+      - "dependency_conflicts_resolved"
 
 parallelization_rules:
   core_principles:
-    - "Maximize independent work streams"
-    - "Minimize inter-agent dependencies"
-    - "Prevent resource conflicts proactively"
-    - "Enable graceful degradation on delays"
-    
+    - "Maximize independent work streams per wave."
+    - "Preserve strict milestone and task ordering."
+    - "Block fan-in on unresolved contract violations."
+    - "Allow wave cardinality growth when needed."
+
   dependency_categories:
     hard_dependencies:
-      description: "Must be completed before dependent work can begin"
-      examples:
-        - "Database schema before ORM models"
-        - "API contracts before client implementation"
-        - "Authentication before protected endpoints"
-      handling: "Block dependent agents until resolved"
-      
+      description: "Dependent work cannot start before prerequisite completion."
+      handling: "block_until_resolved"
+
     soft_dependencies:
-      description: "Preferred but not blocking"
-      examples:
-        - "UI mockups before implementation"
-        - "Test data before integration tests"
-        - "Documentation templates before writing"
-      handling: "Proceed with temporary placeholders"
-      
+      description: "Dependent work can start with temporary placeholders."
+      handling: "proceed_with_contract_placeholders"
+
     runtime_dependencies:
-      description: "Discovered during execution"
-      examples:
-        - "Shared utility functions"
-        - "Common type definitions"
-        - "Configuration constants"
-      handling: "Dynamic resolution through message queue"
-  
+      description: "Dependency discovered during execution."
+      handling: "resolve_via_message_queue_and_replan"
+
   conflict_prevention:
     branch_isolation:
-      description: "Each agent works on isolated git branch"
-      naming_pattern: "feat/wave{N}-{component}-{timestamp}"
-      merge_strategy: "Sequential by completion order"
-      
-    file_locking:
-      description: "Prevent concurrent modifications"
-      lock_granularity: "file"
-      lock_duration: "until_commit_or_timeout"
-      timeout: "2_hours"
-      
-    namespace_allocation:
-      description: "Pre-assign code namespaces to agents"
-      examples:
-        - "API routes by resource"
-        - "UI components by feature"
-        - "Database tables by domain"
+      description: "Each lane uses isolated branch namespace."
+      naming_pattern: "codex/p{PHASE}/w{WAVE}/lane-{CONCERN}"
+      merge_strategy: "lane_to_wave_fanin_to_milestone_fanin_to_phase_fanin"
 
-timing_configuration:
-  wave_durations:
-    wave_1:
-      maximum: "120_minutes"
-      checkpoints:
-        - "30_minutes: Foundation components started"
-        - "60_minutes: Core infrastructure complete"
-        - "90_minutes: Basic functionality working"
-        - "120_minutes: Wave handoff preparation"
-        
-    wave_2:
-      maximum: "60_minutes"
-      checkpoints:
-        - "20_minutes: Feature implementation started"
-        - "40_minutes: Integration points connected"
-        - "60_minutes: Feature freeze and testing"
-        
-    wave_3:
-      maximum: "30_minutes"
-      checkpoints:
-        - "10_minutes: Polish tasks identified"
-        - "20_minutes: Optimizations complete"
-        - "30_minutes: Final validation"
-  
-  agent_timing:
-    status_update_interval: "15_minutes"
-    health_check_interval: "5_minutes"
-    stall_detection_threshold: "30_minutes"
-    automatic_handoff_timeout: "wave_duration"
+    file_locking:
+      description: "Prevent concurrent file edits across lanes."
+      lock_granularity: "file"
+      lock_duration: "until_lane_fanin_or_timeout"
+      timeout: "2_hours"
+
+gate_policy:
+  milestone_gate:
+    unit_gate:
+      required: true
+      criteria:
+        - "schema_and_contract_checks_pass"
+        - "deterministic_behavior_checks_pass"
+
+    integration_gate:
+      required: true
+      start_after_repo_init: true
+      criteria:
+        - "cross_lane_contract_compatibility_pass"
+        - "dependency_resolution_pass"
+
+  phase_gate:
+    phase_end_e2e:
+      required: true
+      criteria:
+        - "all_milestones_completed"
+        - "phase_level_end_to_end_pass"
+
+  rolling_gate:
+    starts_after_phase: 1
+    inter_phase_integration_required: true
+    cumulative_e2e_required: true
+    criteria:
+      - "phase_N_integrates_with_completed_phases"
+      - "cumulative_end_to_end_pass"
 
 orchestration_phases:
   pre_wave:
-    description: "Preparation before agents are deployed"
-    duration: "variable"
-    activities:
-      - "Context analysis from source_documents"
-      - "Dependency graph construction"
-      - "Agent capability matching"
-      - "Task allocation planning"
-      - "Conflict prevention setup"
+    description: "Gather context, build dependency DAG, assign lanes, and pre-compute gate criteria."
     outputs:
-      - "Agent assignment matrix"
-      - "Dependency resolution order"
-      - "Parallelization plan"
-      - "Risk mitigation strategies"
-      
-  wave_execution:
-    description: "Active development phase"
-    monitoring:
-      - "Real-time progress tracking"
-      - "Dependency satisfaction checking"
-      - "Conflict detection and resolution"
-      - "Performance metrics collection"
-    intervention_triggers:
-      - "Agent stall detection"
-      - "Cascading dependency delays"
-      - "Resource conflict escalation"
-      - "Critical path delays"
-      
-  post_wave:
-    description: "Consolidation and handoff"
-    duration: "15_minutes"
-    activities:
-      - "Branch integration"
-      - "Artifact collection"
-      - "Progress assessment"
-      - "Next wave planning"
-      - "Knowledge transfer"
-    outputs:
-      - "Wave completion report"
-      - "Integrated codebase"
-      - "Dependency updates"
-      - "Lessons learned"
+      - "phase_plan"
+      - "wave_plan"
+      - "lane_assignments"
+      - "gate_matrix"
 
-wave_transition_protocol:
-  handoff_requirements:
-    from_wave_1_to_2:
-      mandatory:
-        - "Core infrastructure operational"
-        - "Database schema finalized"
-        - "Authentication working"
-        - "Basic API structure"
-      optional:
-        - "All UI components"
-        - "Complete test coverage"
-        - "Full documentation"
-        
-    from_wave_2_to_3:
-      mandatory:
-        - "All features implemented"
-        - "Integration points connected"
-        - "Basic testing passing"
-        - "No critical bugs"
-      optional:
-        - "Performance optimization"
-        - "Code beautification"
-        - "Comprehensive docs"
-  
-  knowledge_transfer:
-    artifacts:
-      - "Updated dependency graph"
-      - "Completed task list"
-      - "Known issues log"
-      - "Technical decisions record"
-    format: "Structured markdown with metadata"
-    location: "wave_contexts/wave_{N}/"
+  wave_execution:
+    description: "Execute fan-out lanes with continuous dependency and gate monitoring."
+    monitoring:
+      - "progress_tracking"
+      - "dependency_satisfaction"
+      - "contract_conformance"
+      - "quality_gate_status"
+
+  post_wave:
+    description: "Execute wave fan-in, update artifacts, and prepare next wave."
+    outputs:
+      - "wave_completion_report"
+      - "updated_dependency_graph"
+      - "milestone_gate_snapshot"
 
 performance_metrics:
-  wave_level:
-    - "Completion percentage"
-    - "Agent utilization rate"
-    - "Dependency resolution time"
-    - "Conflict occurrence rate"
-    - "Rework percentage"
-    
-  agent_level:
-    - "Task completion rate"
-    - "Code quality score"
-    - "Integration success rate"
-    - "Communication responsiveness"
-    - "Handoff readiness"
-    
-  system_level:
-    - "Overall build progress"
-    - "Time to working prototype"
-    - "Defect introduction rate"
-    - "Knowledge retention score"
-    - "Process efficiency index"
+  plan_conformance:
+    - "phase_count_compliance"
+    - "wave_count_compliance"
+    - "milestone_count_compliance"
+    - "task_count_compliance"
+
+  execution_efficiency:
+    - "lane_parallelization_factor"
+    - "fan_in_delay"
+    - "dependency_resolution_time"
+    - "rework_rate"
+
+  quality:
+    - "milestone_gate_pass_rate"
+    - "phase_e2e_pass_rate"
+    - "rolling_integration_pass_rate"
 
 adaptation_mechanisms:
-  dynamic_reallocation:
-    description: "Adjust agent assignments based on progress"
-    triggers:
-      - "Significant delays detected"
-      - "Unexpected complexity discovered"
-      - "Agent failure or timeout"
-    actions:
-      - "Reassign blocked tasks"
-      - "Merge similar work streams"
-      - "Escalate to next wave"
-      
-  wave_extension:
-    description: "Extend wave duration when necessary"
-    maximum_extension: "30_minutes"
-    approval_required: true
-    conditions:
-      - "Critical path nearly complete"
-      - "High value tasks remaining"
-      - "No cascading delays"
-      
-  scope_adjustment:
-    description: "Move tasks between waves"
-    criteria:
-      - "Task complexity reassessment"
-      - "Dependency chain analysis"
-      - "Business priority changes"
+  phase_expansion:
+    description: "Add phases when roadmap scope remains after planned phase completion."
+    approval_required: false
+
+  wave_expansion:
+    description: "Add waves when lane collision or critical-path overload is detected."
+    approval_required: false
+
+  scope_reallocation:
+    description: "Move tasks between waves while preserving milestone sequence and task cardinality."
     process:
-      - "Identify candidate tasks"
-      - "Assess impact analysis"
-      - "Update wave plans"
-      - "Communicate changes"
+      - "detect_overload"
+      - "propose_reallocation"
+      - "validate_contract"
+      - "apply_and_broadcast"
