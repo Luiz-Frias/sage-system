@@ -1,8 +1,2 @@
-# PDFs
-*.pdf
-
-# Directories
-ongoing_research/
-
-# Working Document
-source_material/product_roadmaps/
+# Artifacts
+.DS_Store

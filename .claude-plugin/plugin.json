@@ -1,0 +1,28 @@
+{
+  "name": "sage",
+  "version": "1.0.0",
+  "description": "SAGE (Supervisor Agent-Generated Engineering) orchestrates phased parallel software development using fan-out/fan-in lanes, tiered quality gates, dynamic planning contracts, and continuous learning capture.",
+  "author": "mythwave",
+  "license": "MIT AND Apache-2.0",
+  "homepage": "https://github.com/Luiz-Frias/SAGE_SYSTEM",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Luiz-Frias/SAGE_SYSTEM.git"
+  },
+  "skills": "skills/",
+  "agents": "agents/",
+  "keywords": [
+    "orchestration",
+    "multi-agent",
+    "fan-out-fan-in",
+    "parallel-development",
+    "code-generation",
+    "quality-gates",
+    "planning-contract",
+    "tiered-validation"
+  ],
+  "compatibility": "Claude Code 1.0+",
+  "engines": {
+    "claude-code": ">=1.0.0"
+  }
+}
