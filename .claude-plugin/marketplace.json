@@ -2,7 +2,6 @@
   "plugins": [
     {
       "name": "sage",
-      "path": ".",
       "version": "1.0.0",
       "category": "development",
       "tags": [
