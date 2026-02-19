@@ -10,16 +10,7 @@
     {
       "name": "sage",
       "version": "1.0.0",
-      "category": "development",
-      "tags": [
-        "orchestration",
-        "multi-agent",
-        "fan-out-fan-in",
-        "parallel-development",
-        "software-engineering",
-        "planning-contract",
-        "tiered-validation"
-      ]
+      "category": "development"
     }
   ]
 }
