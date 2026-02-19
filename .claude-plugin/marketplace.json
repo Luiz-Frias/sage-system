@@ -1,4 +1,11 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "sage",
+  "description": "Phased parallel development orchestration with fan-out/fan-in lanes, tiered quality gates, dynamic planning contracts, and continuous learning. Build entire systems systematically with scope-adaptive planning (Compact/Standard/Full profiles)",
+  "owner": {
+    "name": "Luiz Frias",
+    "email": "contact.me@luizfrias.com"
+  },
   "plugins": [
     {
       "name": "sage",
@@ -12,10 +19,7 @@
         "software-engineering",
         "planning-contract",
         "tiered-validation"
-      ],
-      "description": "Phased parallel development orchestration with fan-out/fan-in lanes, tiered quality gates, dynamic planning contracts, and continuous learning. Build entire systems systematically with scope-adaptive planning (Compact/Standard/Full profiles).",
-      "author": "mythwave",
-      "license": "MIT AND Apache-2.0"
+      ]
     }
   ]
 }
