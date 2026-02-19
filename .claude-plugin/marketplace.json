@@ -16,8 +16,7 @@
       ],
       "description": "Phased parallel development orchestration with fan-out/fan-in lanes, tiered quality gates, dynamic planning contracts, and continuous learning. Build entire systems systematically with scope-adaptive planning (Compact/Standard/Full profiles).",
       "author": "mythwave",
-      "license": "MIT AND Apache-2.0",
-      "min_claude_code_version": "1.0.0"
+      "license": "MIT AND Apache-2.0"
     }
   ]
 }
