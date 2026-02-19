@@ -1,5 +1,4 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "sage",
   "description": "Phased parallel development orchestration with fan-out/fan-in lanes, tiered quality gates, dynamic planning contracts, and continuous learning. Build entire systems systematically with scope-adaptive planning (Compact/Standard/Full profiles)",
   "owner": {
@@ -9,8 +8,7 @@
   "plugins": [
     {
       "name": "sage",
-      "version": "1.0.0",
-      "category": "development"
+      "version": "1.0.0"
     }
   ]
 }
