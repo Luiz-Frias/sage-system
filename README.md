@@ -38,6 +38,15 @@ claude --plugin-dir /path/to/sage-system
 SAGE will analyze your codebase, recommend a scope profile, generate a phased plan,
 and execute it with parallel agent lanes — pausing for your approval at key checkpoints.
 
+## Documentation
+
+| Document | Audience | Content |
+|----------|----------|---------|
+| This README | Humans | Installation, overview, structure |
+| [PLUGIN.agents.md](PLUGIN.agents.md) | Agents (cold-context entry) | Invocation flow, deployment patterns, gate decisions, recovery playbook |
+| [skills/sage/SKILL.md](skills/sage/SKILL.md) | Supervisor agent | Full orchestration protocol, cardinality rules, reference loading |
+| [AGENTS.spec.md](AGENTS.spec.md) | Spec reference | Formal state machine, agent capability matrix |
+
 ## Architecture
 
 ### Plugin Components
