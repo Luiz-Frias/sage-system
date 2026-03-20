@@ -1,110 +1,116 @@
 # SAGE System
-**Supervisor Agent-Generated Engineering**
 
-A revolutionary multi-agent code generation system that orchestrates specialized agents to build modern software applications systematically.
+**Supervisor Agent-Generated Engineering** — a Claude Code plugin that orchestrates
+phased parallel software development using fan-out/fan-in lanes, tiered quality gates,
+and dynamic planning contracts.
 
-## 🚀 What is SAGE?
+## What is SAGE?
 
-SAGE represents a paradigm shift in software development:
-- **Supervisor-Orchestrated**: You act as the persistent manager coordinating multiple specialized agents
-- **Wave-Based Execution**: Systematic progress with quality gates at each development phase
-- **Learning System**: Captures patterns from successful implementations to improve future builds
-- **Language-Agnostic Core**: Pluggable language and domain modules
-- **Agent Communication**: Sophisticated protocol ensures agents coordinate without conflicts
+SAGE is a multi-agent orchestration system for building software systematically.
+Instead of writing code file-by-file, SAGE decomposes projects into phases, waves,
+and milestones — then deploys specialized agents in parallel to build them.
 
-## 🏗️ Architecture
+- **Scope-adaptive planning** — Compact (< 10 files), Standard (10-50), or Full (50+)
+- **Fan-out/fan-in execution** — parallel lanes for contracts, logic, tests, and integration
+- **Tiered quality gates** — unit, integration, phase-E2E, and rolling cumulative checks
+- **Continuous learning** — captures patterns and decisions for future projects
 
-### Core System (`/core/`)
-- **Configuration**: System-wide settings and parameters
-- **Engine**: Wave orchestration, parallelization rules, learning system
-- **Communication**: Agent messaging protocol and conflict resolution
-- **Registry**: Agent capabilities, language features, available tools
+## Installation
 
-### Domain Modules (`/domains/`)
-- **Insurance**: P&C insurance with underwriting, claims, rating
-- **E-commerce**: Online retail with inventory, orders, payments
-- **SaaS**: Software-as-a-Service patterns and templates
-
-### Language Plugins (`/languages/`)
-- **Python**: Async patterns, FastAPI, type safety
-- **TypeScript**: React patterns, state management, UI components
-- **Rust**: Systems patterns, memory safety, performance
-
-## 📄 Licensing
-
-**SAGE System is dual-licensed** to provide flexibility for different use cases:
-
-### 🆓 Open Source License (AGPL-3.0)
-For non-commercial use, research, and AGPL-3.0 compliant projects.
-
-**Perfect for:**
-- Academic research and education
-- Personal projects and learning  
-- Open source projects
-- Public repositories with AGPL-compliant code
-
-### 💼 Commercial License
-For commercial use, proprietary applications, or closed-source projects.
-
-**Required for:**
-- Integration into proprietary/closed-source software
-- SaaS products without providing full source code
-- Commercial redistribution
-- Enterprise internal use where AGPL compliance is challenging
-
-**[📋 View Commercial License Details](COMMERCIAL-LICENSE.md)**
-
-### 🤝 Contact for Commercial Licensing
-**Email:** luiz.frias@icloud.com  
-**Subject:** SAGE System Commercial License Request
-
-## 🚀 Quick Start
+### From GitHub
 
 ```bash
-# Clone the repository
-git clone https://github.com/Luiz-Frias/sage-system.git
-cd sage-system
-
-# Review the architecture
-cat MASTER_INSTRUCTION_SET.md
-
-# Choose your domain
-ls domains/
-
-# Select your tech stack
-ls languages/
-
-# Start building!
+/plugin install gh:Luiz-Frias/sage-system
 ```
 
-## 📚 Documentation
+### Local development
 
-- **[Master Instructions](MASTER_INSTRUCTION_SET.md)** - Complete system guide
-- **[Commercial Licensing](COMMERCIAL-LICENSE.md)** - Commercial use details
-- **[License Notices](LICENSE-NOTICE.md)** - Source file header templates
+```bash
+claude --plugin-dir /path/to/sage-system
+```
 
-## 🤝 Contributing
+## Usage
 
-This project is open for contributions under AGPL-3.0. By contributing, you agree that your contributions will be licensed under the same dual license.
+```
+/sage <project-description>
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add appropriate license headers
-5. Submit a pull request
+SAGE will analyze your codebase, recommend a scope profile, generate a phased plan,
+and execute it with parallel agent lanes — pausing for your approval at key checkpoints.
 
-## 📞 Support
+## Architecture
 
-- **Open Source Support**: GitHub Issues
-- **Commercial Support**: Contact for dedicated support options
-- **Documentation**: See `/source_documents/` for detailed specifications
+### Plugin Components
 
-## ⚖️ Legal
+```
+.claude-plugin/
+  plugin.json           # Plugin metadata
 
-- **Copyright**: © 2025 Luiz Frias
-- **License**: Dual licensed under AGPL-3.0 and Commercial License
-- **Trademark**: SAGE System is a trademark of Luiz Frias
+skills/sage/
+  SKILL.md              # Supervisor orchestration protocol
+  references/           # Loaded on-demand during execution
+    wave-orchestration.md
+    agent-coordination.md
+    quality-gates.md
+    architecture-patterns.md
+    learning-system.md
+  scripts/              # Validation scripts for Full profile
+    validate_generated_plan_contract.py
+    validate_agent_native_wrappers.sh
+    validate_repo_redesign_contract.sh
 
----
+agents/
+  sage-analyzer.md      # Read-only codebase analysis + scope recommendation
+  sage-builder.md       # Per-lane fan-out builder (branch-isolated)
+  sage-validator.md     # Tiered gate enforcement
+  sage-historian.md     # Pattern capture + decision documentation
+```
 
-*Choose your license: Open source with AGPL-3.0 or commercial for proprietary use.* 
+### Execution Model
+
+```
+              SAGE Supervisor (/sage skill)
+                      |
+         Phase 1: Analysis (sage-analyzer)
+                      |
+         Phase 2: Plan Generation
+                      |
+         Phase 3: Execution Loop
+            |                   |
+      Fan-out (waves)     Fan-in (merge)
+      sage-builder x N    sage-validator
+            |                   |
+         Phase 4: Gate Validation
+                      |
+         Phase 5: Learning (sage-historian)
+                      |
+         Phase 6: Completion
+```
+
+### Legacy Reference Directories
+
+These directories predate the plugin architecture but are still used as optional
+context when present in a target project:
+
+| Directory | Purpose |
+|-----------|---------|
+| `core/` | Engine specs, communication protocol, agent registry |
+| `domains/` | Domain-specific reference (e.g., insurance) |
+| `languages/` | Language-specific patterns, guardrails, templates |
+| `source_documents/` | Project requirements, roadmaps, architecture docs |
+| `wave_contexts/` | Phase/wave execution state and templates |
+
+## License
+
+Dual-licensed under [MIT](LICENSE-MIT) and [Apache-2.0](LICENSE-APACHE) at your option.
+
+Copyright (c) 2025-2026 Luiz Frias
+
+## Contributing
+
+Contributions welcome under the same dual license. Fork, branch, and submit a PR.
+
+## Contact
+
+- **GitHub Issues** for bugs and feature requests
+- **Email:** contact.me@luizfrias.com
